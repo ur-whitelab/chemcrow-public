@@ -49,7 +49,7 @@ class MolSimilarity(BaseTool):
         raise NotImplementedError()
 
 
-class SMILES2Weigth(BaseTool):
+class SMILES2Weight(BaseTool):
     name = "SMILES2Weight"
     description = "Input SMILES, returns molecular weight."
 
@@ -59,7 +59,7 @@ class SMILES2Weigth(BaseTool):
     def _run(self, smiles: str) -> str:
         mol = Chem.MolFromSmiles(smiles)
         if mol is None:
-            raise ValueError("Invalid SMILES string")
+            return "Invalid SMILES string"
         mol_weight = rdMolDescriptors.CalcExactMolWt(mol)
         return mol_weight
 
@@ -72,6 +72,7 @@ class SMILES2Weigth(BaseTool):
 class FuncGroups(BaseTool):
     name = "FunctionalGroups"
     description = "Input SMILES, return list of functional groups in the molecule."
+    dict_fgs: dict = None
 
     def __init__(self, ):
         super(FuncGroups, self).__init__()
@@ -124,7 +125,7 @@ class FuncGroups(BaseTool):
             "nitriles": "*#[N;D1]",
         }
 
-    def _is_fg_in_mol(mol, fg):
+    def _is_fg_in_mol(self, mol, fg):
         fgmol = Chem.MolFromSmarts(fg)
         mol = Chem.MolFromSmiles(mol)
         return len(Chem.Mol.GetSubstructMatches(mol, fgmol, uniquify=True)) > 0
@@ -135,10 +136,9 @@ class FuncGroups(BaseTool):
         Input a molecule SMILES or name.
         Returns a list of functional groups identified by their commmon name (in natural language).
         """
-
         try:
             fgs_in_molec = [
-                name for name, fg in self.dict_fgs.items() if self._is_fg_in_mol(molec, fg)
+                name for name, fg in self.dict_fgs.items() if self._is_fg_in_mol(smiles, fg)
             ]
             if len(fgs_in_molec) > 1:
                 return f"This molecule contains {', '.join(fgs_in_molec[:-1])}, and {fgs_in_molec[-1]}."

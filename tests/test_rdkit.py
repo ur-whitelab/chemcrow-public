@@ -25,17 +25,8 @@ def single_iupac():
     return "4-(4-hydroxyphenyl)butan-2-one"
 
 
-@pytest.fixture
-def common_name():
-    # Test with a molecule with common name
-    return "caffeine"
 
-
-@pytest.fixture
-def choline():
-    # Test with a molecule in clintox
-    return "CCCCCCCCC[NH+]1C[C@@H]([C@H]([C@@H]([C@H]1CO)O)O)O"
-
+# MolSimilarity
 
 def test_molsim_1(molset1):
     tool = MolSimilarity()
@@ -55,74 +46,33 @@ def test_molsim_badinp(singlemol):
     out = tool(singlemol)
     assert out == "Input error, please input two smiles strings separated by '.'"
 
+def test_molsim_iupac(singlemol, single_iupac):
+    tool = MolSimilarity()
+    out = tool("{}.{}".format(singlemol, single_iupac))
+    assert out == "Error: Not a valid SMILES string"
+
+# SMILES2Weight
+
+def test_mw(singlemol):
+    tool = SMILES2Weight()
+    mw = tool(singlemol)
+    assert abs(mw - 194.) < 1.
+
+def test_badinp(singlemol):
+    tool = SMILES2Weight()
+    mw = tool(singlemol + "x")
+    assert mw == "Invalid SMILES string"
 
 
-#    largest_mol,
-#    modify_mol,
-#    patent_check,
-#    smiles2name,
-#    list_functional_groups,
-#    is_smiles,
-#    similarity_quantifier,
-#)
-#
-#
-#
-#
-#def test_largestmol(molset, cafeina):
-#    largest = largest_mol(molset)
-#    assert largest == cafeina
-#
-#
-## Testing smiles2name function
-#def test_smiles2name(cafeina):
-#    name = smiles2name(cafeina)
-#    assert name == "caffeine"
-#
-#
-#def test_smiles2name_iupac(single_iupac):
-#    name = smiles2name(single_iupac)
-#    assert name == "Invalid SMILES string"
-#
-#
-#def test_smilessimilarity(cafeina, choline):
-#    message = similarity_quantifier(f"{cafeina}.{choline}")
-#    assert (
-#        message
-#        == "The Tanimoto similarity between O=C1N(C)C(C2=C(N=CN2C)N1C)=O and CCCCCCCCC[NH+]1C[C@@H]([C@H]([C@@H]([C@H]1CO)O)O)O is 0.0189, indicating that the two molecules are not similar."
-#    )
-#
-#
-#def test_smilessimilarity_1smiles(cafeina):
-#    # this should give an error
-#    message = similarity_quantifier(f"{cafeina}.{cafeina}")
-#    assert message == "Error: Input Molecules Are Identical"
-#
-#
-#def test_smilessimilarity_iupac(cafeina, single_iupac):
-#    # this should give an error
-#    message = similarity_quantifier(f"{cafeina}.{single_iupac}")
-#    assert message == "Error: Not a valid SMILES string"
-#
-#
-#def test_patentcheck(cafeina):
-#    patented = patent_check(cafeina)
-#    assert patented == "Patented"
-#
-#
-#def test_patentcheck_iupac(single_iupac):
-#    # should give an error
-#    patented = patent_check(single_iupac)
-#    assert patented == "Invalid SMILES string"
-#
-#
-#def test_patentcheck_not(choline):
-#    patented = patent_check(choline)
-#    assert patented == "Novel"
-#
-#
-#
-#def test_is_smiles(cafeina, single_iupac):
-#    assert is_smiles(cafeina)
-#    assert is_smiles(cafeina + "$@!") == False
-#    assert is_smiles(single_iupac) == False
+# FuncGroups
+
+def test_fg_single(singlemol):
+    tool = FuncGroups()
+    out = tool(singlemol)
+    assert 'ketones' in out
+
+def test_fg_iupac(single_iupac):
+    tool = FuncGroups()
+    out = tool(single_iupac)
+    assert out == "Wrong argument. Please input a valid molecular SMILES."
+

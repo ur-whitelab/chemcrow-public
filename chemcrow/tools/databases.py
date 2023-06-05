@@ -1,8 +1,13 @@
+import requests
+import molbloom
+from rdkit import Chem
+from chemcrow.utils import *
 from langchain.tools import BaseTool
 
 class Query2SMILES(BaseTool):
     name = "Name2SMILES"
     description = "Input a molecule name, returns SMILES."
+    url: str = None
 
     def __init__(self, ):
         super(Query2SMILES, self).__init__()
@@ -34,17 +39,22 @@ class Query2SMILES(BaseTool):
 class Query2CAS(BaseTool):
     name = "Mol2CAS"
     description = "Input molecule (name or SMILES), returns CAS number."
+    url_cid: str = None
+    url_data: str = None
 
     def __init__(self, ):
         super(Query2CAS, self).__init__()
-        self.url_cid = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/cids/JSON"
+        self.url_cid = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/{}/{}/cids/JSON"
         self.url_data = "https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/{}/JSON"
 
     def _run(self, query: str) -> str:
         try:
-            url_cid = self.url_cid.format(query)
-            Cid = requests.get(url_cid).json()['IdentifierList']['CID'][0]
-            url_data = self.url_data.format(query)
+            mode = 'name'
+            if is_smiles(query):
+                mode = 'smiles'
+            url_cid = self.url_cid.format(mode, query)
+            cid = requests.get(url_cid).json()['IdentifierList']['CID'][0]
+            url_data = self.url_data.format(cid)
             data = requests.get(url_data).json()
         except (requests.exceptions.RequestException, KeyError):
             return "Invalid molecule input, no Pubchem entry"
