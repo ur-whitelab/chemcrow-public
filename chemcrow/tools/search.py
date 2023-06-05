@@ -3,7 +3,9 @@ import re
 import paperqa
 import langchain
 import paperscraper
-from langchain import SerpAPIWrapper
+from langchain.tools import BaseTool
+from langchain import SerpAPIWrapper, OpenAI
+from langchain.chains import LLMChain
 from pypdf.errors import PdfReadError
 
 
@@ -14,20 +16,27 @@ class LitSearch(BaseTool):
         "Input a specific question, returns an answer from literature search. "
         "Do not mention any specific molecule names, but use more general features to formulate your questions."
     )
+    llm: OpenAI = None
+    query_chain: LLMChain = None
 
-    def __init__(self, ):
+    def __init__(self):
         super(LitSearch, self).__init__()
+        self.llm = OpenAI(
+            temperature=0.05,
+            model_kwargs={"stop": ['"']},
+        )
+
         prompt = langchain.prompts.PromptTemplate(
             input_variables=["question"],
             template="I would like to find scholarly papers to answer this question: {question}. "
             'A search query that would bring up papers that can answer this question would be: "',
         )
-        self.query_chain = langchain.chains.LLMChain(llm=llm, prompt=prompt)
+        self.query_chain = LLMChain(llm=self.llm, prompt=prompt)
 
         if not os.path.isdir("./query"):
             os.mkdir("query/")
 
-    def paper_search(search, pdir="query"):
+    def paper_search(self, search, pdir="query"):
         try:
             return paperscraper.search_papers(search, pdir=pdir)
         except KeyError:
@@ -42,7 +51,7 @@ class LitSearch(BaseTool):
         if len(papers) == 0:
             return "Not enough papers found"
 
-        docs = paperqa.Docs(llm=llm)
+        docs = paperqa.Docs(llm=self.llm)
         not_loaded = 0
         for path, data in papers.items():
             try:
@@ -66,9 +75,11 @@ class WebSearch(BaseTool):
         "Input search query, returns snippets from web search. "
         "Prefer LitSearch tool over this tool, except for simple questions."
     )
+    serpapi: SerpAPIWrapper = None
 
-    def __init__(self, ):
+    def __init__(self, search_engine='google'):
         super(WebSearch, self).__init__()
+
         self.serpapi = SerpAPIWrapper(
             serpapi_api_key=os.getenv("SERP_API_KEY"),
             search_engine=search_engine
@@ -76,7 +87,7 @@ class WebSearch(BaseTool):
 
     def _run(self, query: str) -> str:
         try:
-            return self.serpapi.run(keywords)
+            return self.serpapi.run(query)
         except:
             return "No results, try another search"
 

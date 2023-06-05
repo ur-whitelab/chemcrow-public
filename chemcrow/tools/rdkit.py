@@ -70,9 +70,8 @@ class SMILES2Weigth(BaseTool):
 
 
 class FuncGroups(BaseTool):
-    name = ""
-    description = (
-    )
+    name = "FunctionalGroups"
+    description = "Input SMILES, return list of functional groups in the molecule."
 
     def __init__(self, ):
         super(FuncGroups, self).__init__()

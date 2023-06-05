@@ -13,7 +13,7 @@ setup(
     description="Collection of chemistry tools for use with language models",
     author="Andrew White",
     author_email="andrew.white@rochester.edu",
-    url="https://github.com/ur-whitelab/chemcrow",
+    url="https://github.com/ur-whitelab/chemcrow-public",
     license="MIT",
     packages=find_packages(),
     install_requires=[
@@ -29,7 +29,8 @@ setup(
         "ipywidgets",
         "ipykernel",
         "tiktoken",
-        "rmrkl @ git+https://github.com/doncamilom/robust-mrkl.git"
+        "rmrkl @ git+https://github.com/doncamilom/robust-mrkl.git",
+        "python-dotenv",
     ],
     test_suite="tests",
     long_description=long_description,
