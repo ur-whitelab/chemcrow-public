@@ -1,7 +1,11 @@
 import pytest
 import rdkit.Chem as Chem
 
-from chemcrow.tools.rdkit import *
+from chemcrow.tools.rdkit import (
+    MolSimilarity,
+    SMILES2Weight,
+    FuncGroups
+)
 
 @pytest.fixture
 def singlemol():

@@ -42,7 +42,11 @@ class LitSearch(BaseTool):
         except KeyError:
             return {}
 
-    def _run(self, query: str, search=None, npapers=16, npassages=5) -> str:
+    def _run(self, query: str) -> str:
+        search=None
+        npapers=16
+        npassages=5
+
         if search is None:
             search = self.query_chain.run(query)
         print("\nSearch:", search)
