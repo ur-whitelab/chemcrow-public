@@ -21,9 +21,7 @@ Built with Langchain, it uses a collection of chemical tools including RDKit, pa
 ## 👩‍💻 Installation
 
 ```
-conda create -n chemcrow python=3.8
-conda activate chemcrow
-pip install -e .
+pip install chemcrow
 ```
 
 ## 🔥 Usage
