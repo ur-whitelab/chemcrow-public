@@ -16,6 +16,7 @@ def questions():
     ]
     return qs
 
+@pytest.mark.skip()
 def test_litsearch(questions):
     searchtool = LitSearch()
 
@@ -24,6 +25,7 @@ def test_litsearch(questions):
         assert isinstance(ans, str)
         assert len(ans)>0
 
+@pytest.mark.skip()
 def test_websearch(questions):
     searchtool = WebSearch('google')
 

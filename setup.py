@@ -29,7 +29,7 @@ setup(
         "ipywidgets",
         "ipykernel",
         "tiktoken",
-        "rmrkl @ git+https://github.com/doncamilom/robust-mrkl.git",
+        "rmrkl",
         "python-dotenv",
     ],
     test_suite="tests",
