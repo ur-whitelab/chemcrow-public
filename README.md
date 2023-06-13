@@ -29,7 +29,8 @@ pip install -e .
 ## 🔥 Usage
 First set up your API keys in your environment. 
 ```
-export OPENAI_API=your-openai-api-key
+export OPENAI_API_KEY=your-openai-api-key
+export SERP_API_KEY=your-serpapi-api-key
 ```
 
 In a Python session:

@@ -10,8 +10,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="chemcrow",
     version=__version__,
-    description="Collection of chemistry tools for use with language models",
-    author="Andrew White",
+    description="Accurate solution of reasoning-intensive chemical tasks, poweredby LLMs.",
+    author="Andres M Bran, Sam Cox, Andrew White, Philippe Schwaller",
     author_email="andrew.white@rochester.edu",
     url="https://github.com/ur-whitelab/chemcrow-public",
     license="MIT",
@@ -21,7 +21,6 @@ setup(
         "synspace",
         "molbloom",
         "paper-qa==1.1.1",
-        "rxn4chemistry",
         "google-search-results",
         "pandas",
         "langchain==0.0.173",
