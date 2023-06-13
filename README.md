@@ -15,7 +15,7 @@
 
 ChemCrow is an open source package for the accurate solution of reasoning-intensive chemical tasks.
 
-It's built using Langchain and uses a collection of chemical tools from many sources, including IBM's RXN4Chemistry, RDKit, and paper-qa, as well as access to some relevant databases in chemistry, like Pubchem, chem-space, and others.
+Built with Langchain, it uses a collection of chemical tools including RDKit, paper-qa, as well as some relevant databases in chemistry, like Pubchem and chem-space.
 
 
 ## 👩‍💻 Installation
@@ -27,32 +27,27 @@ pip install -e .
 ```
 
 ## 🔥 Usage
-First set up your API keys in your environment. For the moment you need an OpenAI API key.
+First set up your API keys in your environment. 
+```
+export OPENAI_API=your-openai-api-key
+```
 
-Other included tools also need API keys, particularly SERP (for web searches), RXN4Chem and chem-space. 
-
-More examples can be found in the [notebooks](./notebooks/) folder.
-
-
+In a Python session:
 ```python
 from chemcrow.agents import ChemTools, ChemCrow
 
 chemtools = ChemTools()
 chem_model = ChemCrow(
-  # Get the toolset(s) that may be relevant:
-    chemtools.mol_tools +
-    chemtools.search_tools,
-
-  # Specify the LLM
+    chemtools.all_tools,
     model="gpt-4",
     temp=0.1,
 )
 
 
-# Now define your task
+# Define your task
 task = (
-    "Tell me what the boiling point is of the reaction product between isoamyl acetate and ethanol."
-    "To do this, predict the product of this reaction, and then find its boiling point. "
+    "Find 3 structural analogs of caffeine "
+    "and describe what functional groups they have in common."
 )
 
 chem_model.run(task)
