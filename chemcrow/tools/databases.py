@@ -91,11 +91,6 @@ class PatentCheck(BaseTool):
     name = "PatentCheck"
     description = "Input SMILES, returns if molecule is patented"
 
-    def __init__(
-        self,
-    ):
-        super(PatentCheck, self).__init__()
-
     def _run(self, smiles: str) -> str:
         """Checks if compound is patented. Give this tool only one SMILES string"""
         try:
