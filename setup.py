@@ -22,7 +22,7 @@ setup(
         "rdkit",
         "synspace",
         "molbloom",
-        "paper-qa==3.0.0dev2",
+        "paper-qa>=3.0.0",
         "google-search-results",
         "langchain",
         "nest_asyncio",
