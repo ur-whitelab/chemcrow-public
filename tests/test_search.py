@@ -1,10 +1,7 @@
 import pytest
 import rdkit.Chem as Chem
 from dotenv import load_dotenv
-from chemcrow.tools.search import (
-    LitSearch,
-    WebSearch
-)
+from chemcrow.tools.search import LitSearch, WebSearch
 
 load_dotenv()
 
@@ -12,9 +9,10 @@ load_dotenv()
 @pytest.fixture
 def questions():
     qs = [
-        'What are the effects of norhalichondrin B in mammals?',
+        "What are the effects of norhalichondrin B in mammals?",
     ]
     return qs
+
 
 @pytest.mark.skip()
 def test_litsearch(questions):
@@ -23,13 +21,14 @@ def test_litsearch(questions):
     for q in questions:
         ans = searchtool(q)
         assert isinstance(ans, str)
-        assert len(ans)>0
+        assert len(ans) > 0
+
 
 @pytest.mark.skip()
 def test_websearch(questions):
-    searchtool = WebSearch('google')
+    searchtool = WebSearch("google")
 
     for q in questions:
         ans = searchtool(q)
         assert isinstance(ans, str)
-        assert len(ans)>0
+        assert len(ans) > 0

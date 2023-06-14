@@ -2,6 +2,8 @@ import os
 from glob import glob
 from setuptools import setup, find_packages
 
+# for typing
+__version__ = "0.0.0"
 exec(open("chemcrow/version.py").read())
 
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -20,16 +22,13 @@ setup(
         "rdkit",
         "synspace",
         "molbloom",
-        "paper-qa==1.1.1",
+        "paper-qa==3.0.0dev2",
         "google-search-results",
-        "pandas",
-        "langchain==0.0.173",
+        "langchain",
         "nest_asyncio",
-        "ipywidgets",
-        "ipykernel",
         "tiktoken",
         "rmrkl",
-        "python-dotenv",
+        "paper-scraper@git+https://github.com/blackadad/paper-scraper.git",
     ],
     test_suite="tests",
     long_description=long_description,

@@ -25,7 +25,7 @@ pip install chemcrow
 ```
 
 ## 🔥 Usage
-First set up your API keys in your environment. 
+First set up your API keys in your environment.
 ```
 export OPENAI_API_KEY=your-openai-api-key
 export SERP_API_KEY=your-serpapi-api-key
@@ -51,4 +51,3 @@ task = (
 
 chem_model.run(task)
 ```
-

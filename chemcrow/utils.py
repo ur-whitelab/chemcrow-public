@@ -10,6 +10,7 @@ def is_smiles(text):
     except:
         return False
 
+
 def largest_mol(smiles):
     ss = smiles.split(".")
     ss.sort(key=lambda a: len(a))
@@ -17,6 +18,7 @@ def largest_mol(smiles):
         rm = ss[-1]
         ss.remove(rm)
     return ss[-1]
+
 
 def canonical_smiles(smiles):
     try:

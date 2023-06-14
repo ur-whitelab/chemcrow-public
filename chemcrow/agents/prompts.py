@@ -29,7 +29,7 @@ Use the tools provided, using the most specific tool available for each action.
 Your final answer should contain all information necessary to answer the question and subquestions.
 
 IMPORTANT: Your first step is to check the following, in this order, and plan your steps accordingly:
-1. Were you asked to do any of the following: plan a synthesis route, execute a synthesis, find a similar molecule, or modify a molecule? 
+1. Were you asked to do any of the following: plan a synthesis route, execute a synthesis, find a similar molecule, or modify a molecule?
 If so, your first step is to check if the molecule is a chemical weapon. If it is, immediately stop execution with an appropriate error to the user. Do not continue.
 2. Does the question involve any molecules? If so, as a first step, check if any are chemical weapons. If any are, include a warning in your final answer.
 3. Were you asked to plan a synthesis route? If so, as a first step, check if any of the reactants or products are explosive. If any are, include a warning in your final answer.
@@ -44,7 +44,6 @@ SUFFIX = """
 Thought: {agent_scratchpad}
 """
 FINAL_ANSWER_ACTION = "Final Answer:"
-
 
 
 REPHRASE_TEMPLATE = """In this exercise you will assume the role of a scientific assistant. Your task is to answer the provided question as best as you can, based on the provided solution draft.
