@@ -1,6 +1,4 @@
-import os
-from glob import glob
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 # for typing
 __version__ = "0.0.0"

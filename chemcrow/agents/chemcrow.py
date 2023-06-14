@@ -1,12 +1,11 @@
 import langchain
-from rmrkl import ChatZeroShotAgent, RetryAgentExecutor
-from .prompts import FORMAT_INSTRUCTIONS, SUFFIX, QUESTION_PROMPT, REPHRASE_TEMPLATE
 import nest_asyncio
-from .tools import make_tools
-
-from rmrkl import ChatZeroShotAgent, RetryAgentExecutor
-from langchain import PromptTemplate, OpenAI, chat_models, chains
+from langchain import PromptTemplate, chains
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from rmrkl import ChatZeroShotAgent, RetryAgentExecutor
+
+from .prompts import FORMAT_INSTRUCTIONS, QUESTION_PROMPT, REPHRASE_TEMPLATE, SUFFIX
+from .tools import make_tools
 
 
 def _make_llm(model, temp, verbose):

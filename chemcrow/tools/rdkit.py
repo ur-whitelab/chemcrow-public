@@ -1,6 +1,6 @@
+from langchain.tools import BaseTool
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem, rdMolDescriptors
-from langchain.tools import BaseTool
 
 
 class MolSimilarity(BaseTool):
@@ -13,7 +13,6 @@ class MolSimilarity(BaseTool):
         super(MolSimilarity, self).__init__()
 
     def _run(self, smiles_pair: str) -> str:
-
         smi_list = smiles_pair.split(".")
         if len(smi_list) != 2:
             return "Input error, please input two smiles strings separated by '.'"

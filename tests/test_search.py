@@ -1,6 +1,6 @@
 import pytest
-import rdkit.Chem as Chem
 from dotenv import load_dotenv
+
 from chemcrow.tools.search import LitSearch, WebSearch
 
 load_dotenv()

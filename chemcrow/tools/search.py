@@ -1,16 +1,16 @@
 import os
 import re
-import paperqa
+from typing import Optional
+
 import langchain
+import paperqa
 import paperscraper
-from langchain.tools import BaseTool
-from langchain import SerpAPIWrapper, OpenAI
+from langchain import SerpAPIWrapper
 from langchain.base_language import BaseLanguageModel
 from langchain.chains import LLMChain
-from pypdf.errors import PdfReadError
+from langchain.tools import BaseTool
 from pydantic import validator
-from typing import Optional
-from datetime import datetime
+from pypdf.errors import PdfReadError
 
 
 class LitSearch(BaseTool):
@@ -57,7 +57,6 @@ class LitSearch(BaseTool):
             return {}
 
     def _run(self, query: str) -> str:
-
         if self.verbose:
             print("\n\nChoosing search terms\n1. ", end="")
         searches = self.query_chain.run(question=query, count=self.searches)
@@ -83,7 +82,7 @@ class LitSearch(BaseTool):
         for path, data in papers.items():
             try:
                 self.docs.add(path, citation=data["citation"], docname=data["key"])
-            except (ValueError, PdfReadError) as e:
+            except (ValueError, PdfReadError):
                 not_loaded += 1
 
         if not_loaded:

@@ -1,8 +1,9 @@
-import requests
 import molbloom
-from rdkit import Chem
-from chemcrow.utils import *
+import requests
 from langchain.tools import BaseTool
+from rdkit import Chem
+
+from chemcrow.utils import *
 
 
 class Query2SMILES(BaseTool):
@@ -27,7 +28,7 @@ class Query2SMILES(BaseTool):
         # return the SMILES string
         try:
             smi = data["PropertyTable"]["Properties"][0]["IsomericSMILES"]
-        except KeyError as e:
+        except KeyError:
             return "Could not find a molecule matching the text. One possible cause is that the input is incorrect, input one molecule at a time."
         # remove salts
         return Chem.CanonSmiles(largest_mol(smi))
@@ -96,7 +97,6 @@ class PatentCheck(BaseTool):
         super(PatentCheck, self).__init__()
 
     def _run(self, smiles: str) -> str:
-
         """Checks if compound is patented. Give this tool only one SMILES string"""
         try:
             r = molbloom.buy(smiles, canonicalize=True, catalog="surechembl")

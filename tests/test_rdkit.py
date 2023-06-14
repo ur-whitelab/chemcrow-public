@@ -1,7 +1,6 @@
 import pytest
-import rdkit.Chem as Chem
 
-from chemcrow.tools.rdkit import MolSimilarity, SMILES2Weight, FuncGroups
+from chemcrow.tools.rdkit import FuncGroups, MolSimilarity, SMILES2Weight
 
 
 @pytest.fixture

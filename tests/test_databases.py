@@ -1,7 +1,7 @@
 import pytest
-from chemcrow.utils import canonical_smiles
 
-from chemcrow.tools.databases import Query2SMILES, Query2CAS, PatentCheck
+from chemcrow.tools.databases import PatentCheck, Query2CAS, Query2SMILES
+from chemcrow.utils import canonical_smiles
 
 
 @pytest.fixture

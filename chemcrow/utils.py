@@ -24,5 +24,5 @@ def canonical_smiles(smiles):
     try:
         smi = Chem.MolToSmiles(Chem.MolFromSmiles(smiles), canonical=True)
         return smi
-    except Exception as e:
+    except Exception:
         return "Invalid SMILES string"
