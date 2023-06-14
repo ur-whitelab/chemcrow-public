@@ -1,5 +1,6 @@
 import pytest
 from dotenv import load_dotenv
+from langchain.chat_models import ChatOpenAI
 
 from chemcrow.tools.search import LitSearch, WebSearch
 
@@ -14,9 +15,9 @@ def questions():
     return qs
 
 
-@pytest.mark.skip()
 def test_litsearch(questions):
-    searchtool = LitSearch()
+    llm = ChatOpenAI()
+    searchtool = LitSearch(llm=llm)
 
     for q in questions:
         ans = searchtool(q)
