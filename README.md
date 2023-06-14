@@ -28,18 +28,23 @@ pip install chemcrow
 First set up your API keys in your environment.
 ```
 export OPENAI_API_KEY=your-openai-api-key
+```
+
+You can optionally use Serp API:
+
+```
 export SERP_API_KEY=your-serpapi-api-key
 ```
 
 In a Python session:
 ```python
-from chemcrow.agents import ChemTools, ChemCrow
+from chemcrow.agents import ChemCrow
 
-chemtools = ChemTools()
 chem_model = ChemCrow(
     chemtools.all_tools,
     model="gpt-4",
     temp=0.1,
+    verbose=True # to get typewriter look
 )
 
 
