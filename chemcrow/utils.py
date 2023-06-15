@@ -10,6 +10,7 @@ def is_smiles(text):
     except:
         return False
 
+
 def largest_mol(smiles):
     ss = smiles.split(".")
     ss.sort(key=lambda a: len(a))
@@ -18,9 +19,10 @@ def largest_mol(smiles):
         ss.remove(rm)
     return ss[-1]
 
+
 def canonical_smiles(smiles):
     try:
         smi = Chem.MolToSmiles(Chem.MolFromSmiles(smiles), canonical=True)
         return smi
-    except Exception as e:
+    except Exception:
         return "Invalid SMILES string"

@@ -1,17 +1,18 @@
+from langchain.tools import BaseTool
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem, rdMolDescriptors
-from langchain.tools import BaseTool
 
 
 class MolSimilarity(BaseTool):
     name = "MolSimilarity"
-    description = "Input two molecule SMILES (separated by '.'), returns Tanimoto similarity."
+    description = (
+        "Input two molecule SMILES (separated by '.'), returns Tanimoto similarity."
+    )
 
     def __init__(self):
         super(MolSimilarity, self).__init__()
 
     def _run(self, smiles_pair: str) -> str:
-
         smi_list = smiles_pair.split(".")
         if len(smi_list) != 2:
             return "Input error, please input two smiles strings separated by '.'"
@@ -53,7 +54,9 @@ class SMILES2Weight(BaseTool):
     name = "SMILES2Weight"
     description = "Input SMILES, returns molecular weight."
 
-    def __init__(self, ):
+    def __init__(
+        self,
+    ):
         super(SMILES2Weight, self).__init__()
 
     def _run(self, smiles: str) -> str:
@@ -68,13 +71,14 @@ class SMILES2Weight(BaseTool):
         raise NotImplementedError()
 
 
-
 class FuncGroups(BaseTool):
     name = "FunctionalGroups"
     description = "Input SMILES, return list of functional groups in the molecule."
     dict_fgs: dict = None
 
-    def __init__(self, ):
+    def __init__(
+        self,
+    ):
         super(FuncGroups, self).__init__()
 
         # List obtained from https://github.com/rdkit/rdkit/blob/master/Data/FunctionalGroups.txt
@@ -127,18 +131,19 @@ class FuncGroups(BaseTool):
 
     def _is_fg_in_mol(self, mol, fg):
         fgmol = Chem.MolFromSmarts(fg)
-        mol = Chem.MolFromSmiles(mol)
+        mol = Chem.MolFromSmiles(mol.strip())
         return len(Chem.Mol.GetSubstructMatches(mol, fgmol, uniquify=True)) > 0
-
 
     def _run(self, smiles: str) -> str:
         """
         Input a molecule SMILES or name.
-        Returns a list of functional groups identified by their commmon name (in natural language).
+        Returns a list of functional groups identified by their common name (in natural language).
         """
         try:
             fgs_in_molec = [
-                name for name, fg in self.dict_fgs.items() if self._is_fg_in_mol(smiles, fg)
+                name
+                for name, fg in self.dict_fgs.items()
+                if self._is_fg_in_mol(smiles, fg)
             ]
             if len(fgs_in_molec) > 1:
                 return f"This molecule contains {', '.join(fgs_in_molec[:-1])}, and {fgs_in_molec[-1]}."
@@ -146,7 +151,6 @@ class FuncGroups(BaseTool):
                 return f"This molecule contains {fgs_in_molec[0]}."
         except:
             return "Wrong argument. Please input a valid molecular SMILES."
-
 
     async def _arun(self, smiles: str) -> str:
         """Use the tool asynchronously."""

@@ -1,15 +1,19 @@
-import requests
 import molbloom
-from rdkit import Chem
-from chemcrow.utils import *
+import requests
 from langchain.tools import BaseTool
+from rdkit import Chem
+
+from chemcrow.utils import *
+
 
 class Query2SMILES(BaseTool):
     name = "Name2SMILES"
     description = "Input a molecule name, returns SMILES."
     url: str = None
 
-    def __init__(self, ):
+    def __init__(
+        self,
+    ):
         super(Query2SMILES, self).__init__()
         self.url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}"
 
@@ -18,15 +22,13 @@ class Query2SMILES(BaseTool):
         """Useful to get the SMILES string of one molecule by searching the name of a molecule. Only query with one specific name."""
 
         # query the PubChem database
-        r = requests.get(
-            self.url.format(query, "property/IsomericSMILES/JSON")
-        )
+        r = requests.get(self.url.format(query, "property/IsomericSMILES/JSON"))
         # convert the response to a json object
         data = r.json()
         # return the SMILES string
         try:
             smi = data["PropertyTable"]["Properties"][0]["IsomericSMILES"]
-        except KeyError as e:
+        except KeyError:
             return "Could not find a molecule matching the text. One possible cause is that the input is incorrect, input one molecule at a time."
         # remove salts
         return Chem.CanonSmiles(largest_mol(smi))
@@ -42,18 +44,24 @@ class Query2CAS(BaseTool):
     url_cid: str = None
     url_data: str = None
 
-    def __init__(self, ):
+    def __init__(
+        self,
+    ):
         super(Query2CAS, self).__init__()
-        self.url_cid = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/{}/{}/cids/JSON"
-        self.url_data = "https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/{}/JSON"
+        self.url_cid = (
+            "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/{}/{}/cids/JSON"
+        )
+        self.url_data = (
+            "https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/{}/JSON"
+        )
 
     def _run(self, query: str) -> str:
         try:
-            mode = 'name'
+            mode = "name"
             if is_smiles(query):
-                mode = 'smiles'
+                mode = "smiles"
             url_cid = self.url_cid.format(mode, query)
-            cid = requests.get(url_cid).json()['IdentifierList']['CID'][0]
+            cid = requests.get(url_cid).json()["IdentifierList"]["CID"][0]
             url_data = self.url_data.format(cid)
             data = requests.get(url_data).json()
         except (requests.exceptions.RequestException, KeyError):
@@ -66,7 +74,9 @@ class Query2CAS(BaseTool):
                         if subsection.get("TOCHeading") == "Other Identifiers":
                             for subsubsection in subsection["Section"]:
                                 if subsubsection.get("TOCHeading") == "CAS":
-                                    return subsubsection["Information"][0]["Value"]["StringWithMarkup"][0]["String"]
+                                    return subsubsection["Information"][0]["Value"][
+                                        "StringWithMarkup"
+                                    ][0]["String"]
         except KeyError:
             return "Invalid molecule input, no Pubchem entry"
 
@@ -81,11 +91,7 @@ class PatentCheck(BaseTool):
     name = "PatentCheck"
     description = "Input SMILES, returns if molecule is patented"
 
-    def __init__(self, ):
-        super(PatentCheck, self).__init__()
-
     def _run(self, smiles: str) -> str:
-
         """Checks if compound is patented. Give this tool only one SMILES string"""
         try:
             r = molbloom.buy(smiles, canonicalize=True, catalog="surechembl")
@@ -99,6 +105,3 @@ class PatentCheck(BaseTool):
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
         raise NotImplementedError()
-
-
-
