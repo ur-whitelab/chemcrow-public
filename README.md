@@ -40,19 +40,6 @@ In a Python session:
 ```python
 from chemcrow.agents import ChemCrow
 
-chem_model = ChemCrow(
-    chemtools.all_tools,
-    model="gpt-4",
-    temp=0.1,
-    verbose=True # to get typewriter look
-)
-
-
-# Define your task
-task = (
-    "Find 3 structural analogs of caffeine "
-    "and describe what functional groups they have in common."
-)
-
-chem_model.run(task)
+chem_model = ChemCrow(model="gpt-4-0613", temp=0.1, max_iterations=2)
+chem_model.run("What is the molecular weight of tylenol?")
 ```
