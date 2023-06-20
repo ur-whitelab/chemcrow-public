@@ -43,3 +43,23 @@ from chemcrow.agents import ChemCrow
 chem_model = ChemCrow(model="gpt-4-0613", temp=0.1, max_iterations=2)
 chem_model.run("What is the molecular weight of tylenol?")
 ```
+
+## ⚠️ Note
+
+This package does not contain all the tools described in the [ChemCrow paper](https://arxiv.org/abs/2304.05376) because 
+of API usage restrictions and dual-use concern. Over time we will move more tools to this repo (and we will accept PRs). 
+
+## ✅ Citation
+Bran, Andres M., et al. "ChemCrow: Augmenting large-language models with chemistry tools." arXiv preprint arXiv:2304.05376 (2023).
+
+```bibtex
+@article{bran2023chemcrow,
+      title={ChemCrow: Augmenting large-language models with chemistry tools}, 
+      author={Andres M Bran and Sam Cox and Oliver Schilter and Carlo Baldassari and Andrew D White and Philippe Schwaller},
+      year={2023},
+      eprint={2304.05376},
+      archivePrefix={arXiv},
+      primaryClass={physics.chem-ph},
+      publisher={arXiv}
+}
+```
