@@ -4,8 +4,8 @@
 
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./assets/chemcrow_dark_bold.png" width='100%'>
-  <source media="(prefers-color-scheme: light)" srcset="./assets/chemcrow_light_bold.png" width='100%'>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/chemcrow_dark_bold.png" width='100%'>
+  <source media="(prefers-color-scheme: light)" srcset="assets/chemcrow_light_bold.png" width='100%'>
   <img alt="ChemCrow logo" src="/assets/" width="100%">
 </picture>
 
@@ -40,7 +40,7 @@ In a Python session:
 ```python
 from chemcrow.agents import ChemCrow
 
-chem_model = ChemCrow(model="gpt-4-0613", temp=0.1, max_iterations=2)
+chem_model = ChemCrow(model="gpt-4-0613", temp=0.1, verbose=True)
 chem_model.run("What is the molecular weight of tylenol?")
 ```
 
