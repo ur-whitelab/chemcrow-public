@@ -40,7 +40,7 @@ In a Python session:
 ```python
 from chemcrow.agents import ChemCrow
 
-chem_model = ChemCrow(model="gpt-4-0613", temp=0.1, max_iterations=2)
+chem_model = ChemCrow(model="gpt-4-0613", temp=0.1, verbose=True)
 chem_model.run("What is the molecular weight of tylenol?")
 ```
 
