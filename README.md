@@ -4,8 +4,8 @@
 
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./assets/chemcrow_dark_bold.png" width='100%'>
-  <source media="(prefers-color-scheme: light)" srcset="./assets/chemcrow_light_bold.png" width='100%'>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/chemcrow_dark_bold.png" width='100%'>
+  <source media="(prefers-color-scheme: light)" srcset="assets/chemcrow_light_bold.png" width='100%'>
   <img alt="ChemCrow logo" src="/assets/" width="100%">
 </picture>
 
