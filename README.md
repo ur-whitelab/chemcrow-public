@@ -18,6 +18,13 @@ ChemCrow is an open source package for the accurate solution of reasoning-intens
 Built with Langchain, it uses a collection of chemical tools including RDKit, paper-qa, as well as some relevant databases in chemistry, like Pubchem and chem-space.
 
 
+## ⚠️ Note
+
+This package does not contain all the tools described in the [ChemCrow paper](https://arxiv.org/abs/2304.05376) because 
+of API usage restrictions and dual-use concern. This will not give the same results as that paper. 
+
+
+
 ## 👩‍💻 Installation
 
 ```
@@ -43,11 +50,6 @@ from chemcrow.agents import ChemCrow
 chem_model = ChemCrow(model="gpt-4-0613", temp=0.1, verbose=True)
 chem_model.run("What is the molecular weight of tylenol?")
 ```
-
-## ⚠️ Note
-
-This package does not contain all the tools described in the [ChemCrow paper](https://arxiv.org/abs/2304.05376) because 
-of API usage restrictions and dual-use concern. Over time we will move more tools to this repo (and we will accept PRs). 
 
 ## ✅ Citation
 Bran, Andres M., et al. "ChemCrow: Augmenting large-language models with chemistry tools." arXiv preprint arXiv:2304.05376 (2023).
