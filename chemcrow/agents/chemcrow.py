@@ -8,7 +8,7 @@ from .prompts import FORMAT_INSTRUCTIONS, QUESTION_PROMPT, REPHRASE_TEMPLATE, SU
 from .tools import make_tools
 
 
-def _make_llm(model, temp, verbose):
+def _make_llm(model, temp, verbose, api_key):
     if model.startswith("gpt-3.5-turbo") or model.startswith("gpt-4"):
         llm = langchain.chat_models.ChatOpenAI(
             temperature=temp,
@@ -16,6 +16,7 @@ def _make_llm(model, temp, verbose):
             request_timeout=1000,
             streaming=True if verbose else False,
             callbacks=[StreamingStdOutCallbackHandler()] if verbose else [None],
+            openai_api_key = api_key
         )
     elif model.startswith("text-"):
         llm = langchain.OpenAI(
@@ -23,6 +24,7 @@ def _make_llm(model, temp, verbose):
             model_name=model,
             streaming=True if verbose else False,
             callbacks=[StreamingStdOutCallbackHandler()] if verbose else [None],
+            openai_api_key = api_key
         )
     else:
         raise ValueError(f"Invalid model name: {model}")
@@ -38,13 +40,15 @@ class ChemCrow:
         temp=0.1,
         max_iterations=40,
         verbose=True,
+        api_key=None
     ):
         try:
-            self.llm = _make_llm(model, temp, verbose)
+            self.llm = _make_llm(model, temp, verbose, api_key)
         except:
             return "Invalid openai key"
+
         if tools is None:
-            tools_llm = _make_llm(tools_model, temp, verbose)
+            tools_llm = _make_llm(tools_model, temp, verbose, api_key)
             tools = make_tools(tools_llm, verbose=verbose)
         # Initialize agent
         self.agent_executor = RetryAgentExecutor.from_agent_and_tools(
