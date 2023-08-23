@@ -18,7 +18,7 @@ def make_tools(llm: BaseLanguageModel, verbose=False):
         MolSimilarity(),
         SMILES2Weight(),
         FuncGroups(),
-        LitSearch(llm=llm, verbose=verbose),
+        #LitSearch(llm=llm, verbose=verbose),
     ]
     if serp_key:
         all_tools.append(WebSearch())

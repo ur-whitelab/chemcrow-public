@@ -39,7 +39,10 @@ class ChemCrow:
         max_iterations=40,
         verbose=True,
     ):
-        self.llm = _make_llm(model, temp, verbose)
+        try:
+            self.llm = _make_llm(model, temp, verbose)
+        except:
+            return "Invalid openai key"
         if tools is None:
             tools_llm = _make_llm(tools_model, temp, verbose)
             tools = make_tools(tools_llm, verbose=verbose)
@@ -55,7 +58,7 @@ class ChemCrow:
             ),
             verbose=True,
             max_iterations=max_iterations,
-            return_intermediate_steps=True,
+            #return_intermediate_steps=True,
         )
 
         rephrase = PromptTemplate(
@@ -64,7 +67,7 @@ class ChemCrow:
 
         self.rephrase_chain = chains.LLMChain(prompt=rephrase, llm=self.llm)
 
-    nest_asyncio.apply()  # Fix "this event loop is already running" error
+    #nest_asyncio.apply()  # Fix "this event loop is already running" error
 
     def run(self, prompt):
         outputs = self.agent_executor({"input": prompt})
