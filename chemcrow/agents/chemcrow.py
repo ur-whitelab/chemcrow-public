@@ -71,14 +71,15 @@ class ChemCrow:
 
     def run(self, prompt):
         outputs = self.agent_executor({"input": prompt})
+        return outputs['output']
         # Parse long output (with intermediate steps)
-        intermed = outputs["intermediate_steps"]
+        #intermed = outputs["intermediate_steps"]
 
-        final = ""
-        for step in intermed:
-            final += f"Thought: {step[0].log}\n" f"Observation: {step[1]}\n"
-        final += f"Final Answer: {outputs['output']}"
+        #final = ""
+        #for step in intermed:
+        #    final += f"Thought: {step[0].log}\n" f"Observation: {step[1]}\n"
+        #final += f"Final Answer: {outputs['output']}"
 
-        rephrased = self.rephrase_chain.run(question=prompt, agent_ans=final)
-        print(f"ChemCrow output: {rephrased}")
-        return rephrased
+        #rephrased = self.rephrase_chain.run(question=prompt, agent_ans=final)
+        #print(f"ChemCrow output: {rephrased}")
+        #return rephrased
