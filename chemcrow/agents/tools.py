@@ -6,10 +6,10 @@ from langchain.base_language import BaseLanguageModel
 from chemcrow.tools import *
 
 
-def make_tools(llm: BaseLanguageModel, verbose=False):
+def make_tools(llm: BaseLanguageModel, verbose=True):
     serp_key = os.getenv("SERP_API_KEY")
 
-    all_tools = agents.load_tools(["python_repl", "human"])
+    all_tools = agents.load_tools(["python_repl"]) #, "human"])
 
     all_tools += [
         Query2SMILES(),
@@ -18,7 +18,7 @@ def make_tools(llm: BaseLanguageModel, verbose=False):
         MolSimilarity(),
         SMILES2Weight(),
         FuncGroups(),
-        #LitSearch(llm=llm, verbose=verbose),
+        LitSearch(llm=llm, verbose=verbose),
     ]
     if serp_key:
         all_tools.append(WebSearch())
