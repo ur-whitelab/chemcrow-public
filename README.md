@@ -17,6 +17,10 @@ ChemCrow is an open source package for the accurate solution of reasoning-intens
 
 Built with Langchain, it uses a collection of chemical tools including RDKit, paper-qa, as well as some relevant databases in chemistry, like Pubchem and chem-space.
 
+## Try it out in [HuggingFace](https://huggingface.co/spaces/doncamilom/ChemCrow)!
+
+[![ChemCrow Demo](assets/hf-demo.png)](https://huggingface.co/spaces/doncamilom/ChemCrow)
+
 
 ## ⚠️ Note
 
