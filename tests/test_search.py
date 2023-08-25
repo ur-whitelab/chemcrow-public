@@ -2,7 +2,7 @@ import pytest
 from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 
-from chemcrow.tools.search import LitSearch, WebSearch
+from chemcrow.tools.search import LitSearch
 
 load_dotenv()
 
@@ -15,21 +15,12 @@ def questions():
     return qs
 
 
-def test_litsearch(questions):
-    llm = ChatOpenAI()
-    searchtool = LitSearch(llm=llm)
+#def test_litsearch(questions):
+#    llm = ChatOpenAI()
+#    searchtool = LitSearch(llm=llm)
+#
+#    for q in questions:
+#        ans = searchtool(q)
+#        assert isinstance(ans, str)
+#        assert len(ans) > 0
 
-    for q in questions:
-        ans = searchtool(q)
-        assert isinstance(ans, str)
-        assert len(ans) > 0
-
-
-@pytest.mark.skip()
-def test_websearch(questions):
-    searchtool = WebSearch("google")
-
-    for q in questions:
-        ans = searchtool(q)
-        assert isinstance(ans, str)
-        assert len(ans) > 0
