@@ -27,7 +27,8 @@ setup(
         "tiktoken",
         "rmrkl",
         #"paper-scraper@git+https://github.com/blackadad/paper-scraper.git",
-        "streamlit"
+        "streamlit",
+        "rxn4chemistry"
     ],
     test_suite="tests",
     long_description=long_description,
