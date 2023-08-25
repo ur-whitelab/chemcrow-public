@@ -40,16 +40,21 @@ class ChemCrow:
         temp=0.1,
         max_iterations=40,
         verbose=True,
-        api_key=None
+        openai_api_key: str = None,
+        api_keys: dict = None
     ):
         try:
-            self.llm = _make_llm(model, temp, verbose, api_key)
+            self.llm = _make_llm(model, temp, verbose, openai_api_key)
         except:
             return "Invalid openai key"
 
         if tools is None:
-            tools_llm = _make_llm(tools_model, temp, verbose, api_key)
-            tools = make_tools(tools_llm, verbose=verbose)
+            tools_llm = _make_llm(tools_model, temp, verbose, openai_api_key)
+            tools = make_tools(
+                tools_llm,
+                api_keys = api_keys,
+                verbose=verbose
+            )
         # Initialize agent
         self.agent_executor = RetryAgentExecutor.from_agent_and_tools(
             tools=tools,
