@@ -26,9 +26,11 @@ setup(
         "nest_asyncio",
         "tiktoken",
         "rmrkl",
-        #"paper-scraper@git+https://github.com/blackadad/paper-scraper.git",
+        "paper-scraper@git+https://github.com/blackadad/paper-scraper.git",
         "streamlit",
-        "rxn4chemistry"
+        "rxn4chemistry",
+        "duckduckgo-search",
+        "wikipedia"
     ],
     test_suite="tests",
     long_description=long_description,
