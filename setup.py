@@ -17,6 +17,7 @@ setup(
     license="MIT",
     packages=find_packages(),
     install_requires=[
+        "ipython",
         "rdkit",
         "synspace",
         "molbloom",
