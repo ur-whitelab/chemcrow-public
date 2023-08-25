@@ -32,8 +32,6 @@ def make_tools(
         SafetySummary(llm=llm),
         #LitSearch(llm=llm, verbose=verbose),
     ]
-    if serp_key:
-        all_tools.append(WebSearch())
     if rxn4chem_api_key:
         all_tools.append(RXNPredict(rxn4chem_api_key))
 

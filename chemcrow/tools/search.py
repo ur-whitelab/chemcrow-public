@@ -23,7 +23,7 @@ class LitSearch(BaseTool):
     query_chain: Optional[LLMChain] = None
     pdir: str = "query"
     searches: int = 2
-    verobse: bool = False
+    verbose: bool = False
     docs: Optional[paperqa.Docs] = None
 
     @validator("query_chain", always=True)
@@ -93,28 +93,3 @@ class LitSearch(BaseTool):
         """Use the tool asynchronously."""
         raise NotImplementedError()
 
-
-class WebSearch(BaseTool):
-    name = "WebSearch"
-    description = (
-        "Input search query, returns snippets from web search. "
-        "Prefer LitSearch tool over this tool, except for simple questions."
-    )
-    serpapi: SerpAPIWrapper = None
-
-    def __init__(self, search_engine="google"):
-        super(WebSearch, self).__init__()
-
-        self.serpapi = SerpAPIWrapper(
-            serpapi_api_key=os.getenv("SERP_API_KEY"), search_engine=search_engine
-        )
-
-    def _run(self, query: str) -> str:
-        try:
-            return self.serpapi.run(query)
-        except:
-            return "No results, try another search"
-
-    async def _arun(self, query: str) -> str:
-        """Use the tool asynchronously."""
-        raise NotImplementedError()
