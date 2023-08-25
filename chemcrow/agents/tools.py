@@ -16,6 +16,8 @@ def make_tools(
 
     all_tools = agents.load_tools([
         "python_repl",
+        "ddg-search",
+        "wikipedia",
         #"human"
     ])
 
@@ -26,6 +28,8 @@ def make_tools(
         MolSimilarity(),
         SMILES2Weight(),
         FuncGroups(),
+        ExplosiveCheck(),
+        SafetySummary(llm=llm),
         #LitSearch(llm=llm, verbose=verbose),
     ]
     if serp_key:
