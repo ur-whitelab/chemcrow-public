@@ -8,6 +8,7 @@ from chemcrow.tools import *
 
 def make_tools(llm: BaseLanguageModel, verbose=True):
     serp_key = os.getenv("SERP_API_KEY")
+    rxn4chem_key = os.getenv("RXN4CHEM_API_KEY")
 
     all_tools = agents.load_tools(["python_repl"]) #, "human"])
 
@@ -18,7 +19,8 @@ def make_tools(llm: BaseLanguageModel, verbose=True):
         MolSimilarity(),
         SMILES2Weight(),
         FuncGroups(),
-        LitSearch(llm=llm, verbose=verbose),
+        #LitSearch(llm=llm, verbose=verbose),
+        RXNPredict(rxn4chem_key),
     ]
     if serp_key:
         all_tools.append(WebSearch())
