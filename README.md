@@ -25,8 +25,9 @@ Built with Langchain, it uses a collection of chemical tools including RDKit, pa
 ## ⚠️ Note
 
 This package does not contain all the tools described in the [ChemCrow paper](https://arxiv.org/abs/2304.05376) because 
-of API usage restrictions and dual-use concern. This will not give the same results as that paper. 
+of API usage restrictions. This repo will not give the same results as that paper. 
 
+All the experiments have been released under [ChemCrow runs](https://github.com/ur-whitelab/chemcrow-runs).
 
 
 ## 👩‍💻 Installation
