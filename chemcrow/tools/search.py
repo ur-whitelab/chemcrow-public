@@ -3,7 +3,7 @@ import re
 from typing import Optional
 
 import langchain
-#import paperqa
+import paperqa
 import paperscraper
 from langchain import SerpAPIWrapper
 from langchain.base_language import BaseLanguageModel
