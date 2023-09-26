@@ -56,7 +56,7 @@ chem_model = ChemCrow(model="gpt-4-0613", temp=0.1, verbose=True)
 chem_model.run("What is the molecular weight of tylenol?")
 ```
 
-### Running on a local machine
+### 💻 Running on a local machine
 
 You can also use the program by loading a LlamaCpp (.gguf) or GPT4ALL (.bin) model as the LLM instead of using the OpenAI API.
 
