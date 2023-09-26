@@ -1,3 +1,2 @@
 pre-commit
 python-dotenv
-molbloom
