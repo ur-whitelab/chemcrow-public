@@ -11,17 +11,9 @@ def make_tools(
         api_keys: dict = {},
         verbose=True
 ):
-    serp_key = api_keys.get('SERP_API_KEY') or os.getenv("SERP_API_KEY")
-    rxn4chem_api_key = api_keys.get('RXN4CHEM_API_KEY') or os.getenv("RXN4CHEM_API_KEY")
 
-    all_tools = agents.load_tools([
-        "python_repl",
-        "ddg-search",
-        "wikipedia",
-        #"human"
-    ])
 
-    all_tools += [
+    all_tools = [
         Query2SMILES(),
         Query2CAS(),
         PatentCheck(),
@@ -32,7 +24,6 @@ def make_tools(
         SafetySummary(llm=llm),
         #LitSearch(llm=llm, verbose=verbose),
     ]
-    if rxn4chem_api_key:
-        all_tools.append(RXNPredict(rxn4chem_api_key))
+
 
     return all_tools
