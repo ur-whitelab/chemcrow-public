@@ -1,4 +1,4 @@
-#import molbloom
+import molbloom
 import requests
 from langchain.tools import BaseTool
 from rdkit import Chem

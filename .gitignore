@@ -131,7 +131,3 @@ dmypy.json
 local/
 *ipynb
 query/
-
-
-
-*.gguf
