@@ -1,8 +1,13 @@
-import langchain
+import langchain, os
 import nest_asyncio
 from langchain import PromptTemplate, chains
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from rmrkl import ChatZeroShotAgent, RetryAgentExecutor
+
+from langchain.llms import LlamaCpp
+from langchain.chains import LLMChain
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 from .prompts import FORMAT_INSTRUCTIONS, QUESTION_PROMPT, REPHRASE_TEMPLATE, SUFFIX
 from .tools import make_tools
@@ -31,9 +36,27 @@ def _make_llm(model, temp, verbose, api_key):
     return llm
 
 
+def make_local_llm(model_path, temp, n_ctx=1024):
+    print("make_loacl_LLM:", os.path.abspath("."))
+    # Callbacks support token-wise streaming
+    #callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
+    
+    # Make sure the model path is correct for your system!
+    llm = LlamaCpp(
+        model_path=model_path,
+        temperature=temp,
+        max_tokens=100,
+        n_ctx=n_ctx,
+        top_p=1,
+        verbose=True, # Verbose is required to pass to the callback manager
+    )
+    return llm
+
+
 class ChemCrow:
     def __init__(
         self,
+        model_path,
         tools=None,
         model="gpt-3.5-turbo-0613",
         tools_model="gpt-3.5-turbo-0613",
@@ -43,13 +66,17 @@ class ChemCrow:
         openai_api_key: str = None,
         api_keys: dict = None
     ):
-        try:
-            self.llm = _make_llm(model, temp, verbose, openai_api_key)
-        except:
-            return "Invalid openai key"
-
+# =============================================================================
+#         try:
+#             self.llm = _make_llm(model, temp, verbose, openai_api_key)
+#         except:
+#             return "Invalid openai key"
+# 
+# =============================================================================
+        self.llm = make_local_llm(model_path, temp)
+        
         if tools is None:
-            tools_llm = _make_llm(tools_model, temp, verbose, openai_api_key)
+            tools_llm = make_local_llm(model_path, temp)
             tools = make_tools(
                 tools_llm,
                 api_keys = api_keys,

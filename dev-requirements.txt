@@ -1,3 +1,7 @@
 pre-commit
 python-dotenv
 molbloom
+paper-qa
+paperscraper
+rxn4chemistry
+rmrkl
