@@ -79,7 +79,7 @@ class ChemCrow:
             return self.llm
         
         if tools is None:
-            tools_llm = _make_llm(tools_model, temp, max_tokens, verbose, openai_api_key)
+            tools_llm = _make_llm(tools_model, temp, verbose, openai_api_key, max_tokens, n_ctx)
             tools = make_tools(
                 tools_llm,
                 api_keys = api_keys,
