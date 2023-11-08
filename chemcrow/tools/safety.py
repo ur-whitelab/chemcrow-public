@@ -160,6 +160,9 @@ class SafetySummary(BaseTool):
 
         data = self.mol_safety.get_safety_summary(cas)
         return self.llm_chain.run(" ".join(data))
+    
+    async def _arun(self, cas_number):
+        raise NotImplementedError("Async not implemented.")
 
 
 
@@ -185,4 +188,7 @@ class ExplosiveCheck(BaseTool):
             return "Molecule is explosive"
         else:
             return "Molecule is not known to be explosive."
+        
+    async def _arun(self, cas_number):
+        raise NotImplementedError("Async not implemented.")
 
