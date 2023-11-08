@@ -20,7 +20,7 @@ setup(
         "ipython",
         "rdkit",
         "synspace",
-        "openai>=0.27.0",
+        "openai==1.0.0",
         "molbloom",
         "paper-qa==1.1.1",
         "google-search-results",
