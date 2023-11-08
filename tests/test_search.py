@@ -15,12 +15,12 @@ def questions():
     return qs
 
 
-#def test_litsearch(questions):
-#    llm = ChatOpenAI()
-#    searchtool = LitSearch(llm=llm)
-#
-#    for q in questions:
-#        ans = searchtool(q)
-#        assert isinstance(ans, str)
-#        assert len(ans) > 0
+def test_litsearch(questions):
+    llm = ChatOpenAI()
+    searchtool = LitSearch(llm=llm)
+
+    for q in questions:
+        ans = searchtool(q)
+        assert isinstance(ans, str)
+        assert len(ans) > 0
 
