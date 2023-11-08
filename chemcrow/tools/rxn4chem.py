@@ -53,3 +53,6 @@ class RXNPredict(BaseTool):
         product = res_dict["productMolecule"]["smiles"]
 
         return product
+
+    async def _arun(self, cas_number):
+        raise NotImplementedError("Async not implemented.")
