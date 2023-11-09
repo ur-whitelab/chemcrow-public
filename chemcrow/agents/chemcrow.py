@@ -1,4 +1,5 @@
 import langchain
+from pydantic import ValidationError
 from langchain import PromptTemplate, chains
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from rmrkl import ChatZeroShotAgent, RetryAgentExecutor
@@ -44,7 +45,7 @@ class ChemCrow:
     ):
         try:
             self.llm = _make_llm(model, temp, verbose, openai_api_key)
-        except:
+        except ValidationError:
             raise ValueError('Invalid OpenAI API key')
 
         if tools is None:
