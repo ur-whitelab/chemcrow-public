@@ -2,6 +2,7 @@ import langchain
 from langchain import PromptTemplate, chains
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from rmrkl import ChatZeroShotAgent, RetryAgentExecutor
+from typing import Optional
 
 from .prompts import FORMAT_INSTRUCTIONS, QUESTION_PROMPT, REPHRASE_TEMPLATE, SUFFIX
 from .tools import make_tools
@@ -29,7 +30,6 @@ def _make_llm(model, temp, verbose, api_key):
         raise ValueError(f"Invalid model name: {model}")
     return llm
 
-
 class ChemCrow:
     def __init__(
         self,
@@ -39,7 +39,7 @@ class ChemCrow:
         temp=0.1,
         max_iterations=40,
         verbose=True,
-        openai_api_key: str = "",
+        openai_api_key: Optional[str] = None,
         api_keys: dict = {}
     ):
         try:
