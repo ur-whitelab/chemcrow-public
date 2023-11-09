@@ -1,17 +1,7 @@
-<p align="center">
-    <a href="https://github.com/ur-whitelab/chemcrow-public">
-        <img alt="Tests" src="https://github.com/ur-whitelab/chemcrow-public/actions/workflows/tests.yml/badge.svg" />
-    </a>
-    <a href="https://pypi.org/project/chemcrow">
-        <img alt="PyPI" src="https://img.shields.io/pypi/v/chemcrow" />
-    </a>
-    <a href="https://pypi.org/project/chemcrow">
-        <img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/chemcrow" />
-    </a>
-    <a href="https://doi.org/10.48550/arXiv.2304.05376">
-        <img alt="DOI" src="https://zenodo.org/badge/DOI/10.48550/arXiv.2304.05376.svg" />
-    </a>
-</p>
+[![tests](https://github.com/ur-whitelab/chemcrow-public/actions/workflows/tests.yml/badge.svg)](https://github.com/ur-whitelab/chemcrow-public)
+[![PyPI](https://img.shields.io/pypi/v/chemcrow)](https://img.shields.io/pypi/v/chemcrow)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/chemcrow)](https://img.shields.io/pypi/pyversions/chemcrow)
+[![DOI:10.1101/2020.07.15.204701](https://zenodo.org/badge/DOI/10.48550/arXiv.2304.05376.svg)](https://doi.org/10.48550/arXiv.2304.05376)
 
 
 <picture>
