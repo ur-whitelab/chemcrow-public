@@ -18,6 +18,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "ipython",
+        "python-dotenv",
         "rdkit",
         "synspace",
         "openai==0.27.8",

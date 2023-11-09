@@ -2,27 +2,19 @@ from langchain.callbacks.streamlit.streamlit_callback_handler import (
     LLMThoughtLabeler,
     StreamlitCallbackHandler,
     LLMThought,
-    LLMThoughtState,
-    ToolRecord
 )
-import streamlit as st
 
-from rmrkl import ChatZeroShotAgent, RetryAgentExecutor
-from IPython.core.display import HTML
-import requests
 from chemcrow.agents.prompts import FORMAT_INSTRUCTIONS, SUFFIX, QUESTION_PROMPT
 
-from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Optional, Union
 
-from langchain.callbacks.base import BaseCallbackHandler
 from langchain.callbacks.streamlit.mutable_expander import MutableExpander
 from langchain.schema import AgentAction, AgentFinish, LLMResult
 
 from streamlit.delta_generator import DeltaGenerator
 
 import ast
-from .utils import cdk, tool_parse_chain, is_valid_smiles
+from .utils import cdk, is_valid_smiles
 
 
 class LLMThoughtChem(LLMThought):
@@ -40,7 +32,6 @@ class LLMThoughtChem(LLMThought):
             collapse_on_complete,
         )
 
-
     def on_tool_end(
         self,
         output: str,
@@ -48,8 +39,8 @@ class LLMThoughtChem(LLMThought):
         observation_prefix: Optional[str] = None,
         llm_prefix: Optional[str] = None,
         output_ph: dict = {},
-        input_tool: str = None,
-        serialized: dict = None,
+        input_tool: str = "",
+        serialized: dict = {},
         **kwargs: Any,
     ) -> None:
 
@@ -67,51 +58,6 @@ class LLMThoughtChem(LLMThought):
                 f"**{output}**{cdk(rxn)}",
                 unsafe_allow_html=True
             )
-
-        return 0
-
-        parse_result_inp = ast.literal_eval(
-            tool_parse_chain.run(
-                input_tool = input_tool,
-            )
-        )
-        parse_result_out = ast.literal_eval(
-            tool_parse_chain.run(
-                input_tool = output,
-            )
-        )
-
-        smiles1, smiles2 = "", ""
-
-        if parse_result_inp['status'] == 'OK':
-            if is_valid_smiles(parse_result_inp['result']):
-                smiles1 = parse_result_inp['result']
-
-        if parse_result_out['status'] == 'OK':
-            if is_valid_smiles(parse_result_out['result']):
-                smiles2 = parse_result_out['result']
-
-        print(parse_result_inp, parse_result_out)
-
-        disp_smiles=""
-        if smiles1 and smiles2 and serialized['name'] == 'RXNPredict':
-            disp_smiles = f"{smiles1}>>{smiles2}"
-        elif smiles2:
-            disp_smiles = f"{smiles2}"
-        elif smiles1:
-            disp_smiles = f"{smiles1}"
-
-        if disp_smiles:
-            self._container.markdown(
-                f"**{output}**{cdk(disp_smiles)}",
-                unsafe_allow_html=True
-            )
-
-        else:
-            self._container.markdown(
-                f"**{output}**"
-            )
-
 
 class StreamlitCallbackHandlerChem(StreamlitCallbackHandler):
     def __init__(
