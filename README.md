@@ -8,6 +8,9 @@
     <a href="https://pypi.org/project/chemcrow">
         <img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/chemcrow" />
     </a>
+    <a href="https://doi.org/10.48550/arXiv.2304.05376">
+        <img alt="DOI" src="https://zenodo.org/badge/DOI/10.48550/arXiv.2304.05376.svg" />
+    </a>
 </p>
 
 
