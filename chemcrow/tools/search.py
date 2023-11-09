@@ -2,7 +2,6 @@ import os
 import re
 import paperqa
 import langchain
-import paperscraper
 from langchain import SerpAPIWrapper
 from pypdf.errors import PdfReadError
 from langchain.tools import BaseTool
@@ -11,8 +10,9 @@ from langchain.base_language import BaseLanguageModel
 
 def paper_search(search, pdir="query"):
     try:
+        import paperscraper
         return paperscraper.search_papers(search, pdir=pdir)
-    except KeyError:
+    except (KeyError, ModuleNotFoundError):
         return {}
 
 def partial(func, *args, **kwargs):
