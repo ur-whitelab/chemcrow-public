@@ -2,6 +2,7 @@ import molbloom
 import requests
 from langchain.tools import BaseTool
 from rdkit import Chem
+import pandas as pd
 
 from chemcrow.utils import *
 
@@ -101,6 +102,37 @@ class PatentCheck(BaseTool):
             return "Patented"
         else:
             return "Novel"
+
+    async def _arun(self, query: str) -> str:
+        """Use the tool asynchronously."""
+        raise NotImplementedError()
+
+
+class ChemWeaponCheck(BaseTool):
+    name = "ChemWeaponCheck"
+    description = "Input SMILES, returns if molecule is known chemical weapon."
+
+    def _run(self, cas_number: str) -> str:
+        """Checks if compound is patented. Give this tool only one SMILES string"""
+        #try:
+        if is_smiles(cas_number):
+            return "Please input a valid CAS number."
+        df = pd.read_csv("data/chem_wep.csv")
+        found = (
+            df.apply(
+                lambda row: row.astype(str).str.contains(cas_number).any(),
+                axis=1
+            ).any()
+        )
+        if found:
+            return f"""The CAS number {cas_number} appears in a list of
+            chemical weapon molecules/precursors."""
+        else:
+            return f"""The CAS number {cas_number} does not appear in a
+            known list of chemical weapon molecules/precursors. However,
+            the molecule may still be used as a chemical weapon."""
+        #except:
+            #return "Chemical Weapon Check Error."
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""

@@ -29,6 +29,7 @@ def make_tools(
         SMILES2Weight(),
         FuncGroups(),
         ExplosiveCheck(),
+        ChemWeaponCheck(),
         SafetySummary(llm=llm),
         #LitSearch(llm=llm, verbose=verbose),
     ]
