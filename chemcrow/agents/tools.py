@@ -13,6 +13,7 @@ def make_tools(
 ):
     serp_key = api_keys.get('SERP_API_KEY') or os.getenv("SERP_API_KEY")
     rxn4chem_api_key = api_keys.get('RXN4CHEM_API_KEY') or os.getenv("RXN4CHEM_API_KEY")
+    openai_api_key = api_keys.get('OPENAI_API_KEY') or os.getenv("OPENAI_API_KEY")
 
     all_tools = agents.load_tools([
         "python_repl",
@@ -29,11 +30,14 @@ def make_tools(
         SMILES2Weight(),
         FuncGroups(),
         ExplosiveCheck(),
-        ChemWeaponCheck(),
+        ControlChemCheck(),
         SafetySummary(llm=llm),
         #LitSearch(llm=llm, verbose=verbose),
     ]
     if rxn4chem_api_key:
-        all_tools.append(RXNPredict(rxn4chem_api_key))
+        all_tools += [
+            RXNPredict(rxn4chem_api_key),
+            RXNPlanner(rxn4chem_api_key, openai_api_key)
+        ]
 
     return all_tools

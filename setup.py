@@ -10,7 +10,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="chemcrow",
     version=__version__,
-    description="Accurate solution of reasoning-intensive chemical tasks, poweredby LLMs.",
+    description="Accurate solution of reasoning-intensive chemical tasks, powered by LLMs.",
     author="Andres M Bran, Sam Cox, Andrew White, Philippe Schwaller",
     author_email="andrew.white@rochester.edu",
     url="https://github.com/ur-whitelab/chemcrow-public",

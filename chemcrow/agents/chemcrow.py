@@ -49,6 +49,7 @@ class ChemCrow:
             raise ValueError('Invalid OpenAI API key')
 
         if tools is None:
+            api_keys['OPENAI_API_KEY'] = openai_api_key
             tools_llm = _make_llm(tools_model, temp, verbose, openai_api_key)
             tools = make_tools(
                 tools_llm,

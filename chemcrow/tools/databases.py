@@ -109,9 +109,9 @@ class PatentCheck(BaseTool):
         raise NotImplementedError()
 
 
-class ChemWeaponCheck(BaseTool):
-    name="ChemWeaponCheck"
-    description="Input CAS number, True if molecule is known chemical weapon."
+class ControlChemCheck(BaseTool):
+    name="ControlChemCheck"
+    description="Input CAS number, True if molecule is a controlled chemical."
 
     def _run(self, cas_number: str) -> str:
         """Checks if compound is known chemical weapon. Input CAS number."""
@@ -138,7 +138,7 @@ class ChemWeaponCheck(BaseTool):
                 known list of chemical weapon molecules/precursors. However,
                 the molecule may still be used as a chemical weapon."""
         except:
-            return "Chemical Weapon Check Error."
+            return "Tool error."
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
