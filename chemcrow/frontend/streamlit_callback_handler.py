@@ -1,7 +1,12 @@
 from langchain.callbacks.streamlit.streamlit_callback_handler import (
-    LLMThoughtLabeler,
     StreamlitCallbackHandler,
     LLMThought,
+    LLMThoughtState,
+    LLMThoughtLabeler,
+    ToolRecord,
+    CHECKMARK_EMOJI,
+    THINKING_EMOJI,
+    EXCEPTION_EMOJI
 )
 from typing import Any, Dict, List, Optional
 from streamlit.delta_generator import DeltaGenerator
@@ -37,19 +42,59 @@ class LLMThoughtChem(LLMThought):
     ) -> None:
 
         # Depending on the tool name, decide what to display.
-
         if serialized['name'] == 'Name2SMILES':
+            safe_smiles = output.replace("[", "\[").replace("]", "\]")
             self._container.markdown(
-                f"**{output}**{cdk(output)}",
+                f"**{safe_smiles}**{cdk(output)}",
                 unsafe_allow_html=True
             )
 
-        if serialized['name'] == 'RXNPredict':
+        if serialized['name'] == 'ReactionPredict':
             rxn = f"{input_tool}>>{output}"
+            safe_smiles = rxn.replace("[", "\[").replace("]", "\]")
             self._container.markdown(
-                f"**{output}**{cdk(rxn)}",
+                f"**{safe_smiles}**{cdk(rxn)}",
                 unsafe_allow_html=True
             )
+
+        if serialized['name'] == 'ReactionPlanner':
+            # TODO
+            pass
+
+    def on_tool_start(
+        self, serialized: Dict[str, Any], input_str: str, **kwargs: Any
+    ) -> None:
+        # Called with the name of the tool we're about to run (in `serialized[name]`),
+        # and its input. We change our container's label to be the tool name.
+        self._state = LLMThoughtState.RUNNING_TOOL
+        tool_name = serialized["name"]
+        self._last_tool = ToolRecord(name=tool_name, input_str=input_str)
+        self._container.update(
+            new_label=self._labeler.get_tool_label(self._last_tool, is_complete=False)
+        )
+
+        # Display note of potential long time
+        if serialized['name'] == 'ReactionPlanner':
+            self._container.markdown(
+                f"‼️ Note: This tool can take up to 5 minutes to complete execution ‼️",
+                unsafe_allow_html=True
+            )
+
+    def complete(self, final_label: Optional[str] = None) -> None:
+        """Finish the thought."""
+        if final_label is None and self._state == LLMThoughtState.RUNNING_TOOL:
+            assert (
+                self._last_tool is not None
+            ), "_last_tool should never be null when _state == RUNNING_TOOL"
+            final_label = self._labeler.get_tool_label(
+                self._last_tool, is_complete=True
+            ).replace("[", "\[").replace("]", "\]")
+        self._state = LLMThoughtState.COMPLETE
+        if self._collapse_on_complete:
+            self._container.update(new_label=final_label, new_expanded=False)
+        else:
+            self._container.update(new_label=final_label)
+
 
 class StreamlitCallbackHandlerChem(StreamlitCallbackHandler):
     def __init__(
