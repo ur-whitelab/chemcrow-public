@@ -17,7 +17,7 @@ class RXNPredict(BaseTool):
     rxn4chem_api_key: str = ''
     rxn4chem: RXN4ChemistryWrapper = None
     base_url: str = "https://rxn.res.ibm.com"
-    sleep_time: str = 2
+    sleep_time: int = 5
 
     def __init__(self, rxn4chem_api_key):
         super(RXNPredict, self).__init__()
@@ -42,7 +42,6 @@ class RXNPredict(BaseTool):
             if "prediction_id" in response.keys():
                 break
 
-        status = "WAITING"
         while True:
             sleep(self.sleep_time)
             results = self.rxn4chem.get_predict_reaction_results(
@@ -52,8 +51,6 @@ class RXNPredict(BaseTool):
                 break
 
         res_dict = results["response"]["payload"]["attempts"][0]
-
-        rxn = res_dict["smiles"]
         product = res_dict["productMolecule"]["smiles"]
 
         return product
@@ -73,7 +70,7 @@ class RXNPlanner(BaseTool):
     openai_api_key: str = ''
     rxn4chem: RXN4ChemistryWrapper = None
     base_url: str = "https://rxn.res.ibm.com"
-    sleep_time: int = 10
+    sleep_time: int = 2
 
     def __init__(self, rxn4chem_api_key, openai_api_key):
         super(RXNPlanner, self).__init__()
@@ -135,7 +132,6 @@ class RXNPlanner(BaseTool):
     async def _arun(self, target: str):
         raise NotImplementedError("Async not implemented.")
 
-
     def _path_to_text(self, path):
         for _ in range(10):
             sleep(self.sleep_time)
@@ -147,20 +143,32 @@ class RXNPlanner(BaseTool):
 
         synthesis_id = response["synthesis_id"]
 
-        sleep(self.sleep_time)
-        nodeids = self.rxn4chem.get_node_ids(synthesis_id)
+        for _ in range(10):  # retry 10 times to prevent KeyError 'payload'
+            sleep(self.sleep_time*5)
+            try:
+                nodeids = self.rxn4chem.get_node_ids(synthesis_id)
+            except KeyError:
+                nodeids = None
+                continue
+        if nodeids is None:
+            return 'Tool error'
 
         # Attempt to get actions for each node + product information
         real_nodes = []
         actions_and_products = []
         for node in nodeids:
-            sleep(self.sleep_time)
-            node_resp = self.rxn4chem.get_reaction_settings(
-                synthesis_id=synthesis_id, node_id=node
-            )
-            if 'actions' in node_resp.keys():
-                real_nodes.append(node)
-                actions_and_products.append(node_resp)
+            while True:
+                sleep(3)
+                node_resp = self.rxn4chem.get_reaction_settings(
+                    synthesis_id=synthesis_id, node_id=node
+                )
+                if 'response' in node_resp.keys():
+                    # retry
+                    break
+                elif 'actions' in node_resp.keys():
+                    real_nodes.append(node)
+                    actions_and_products.append(node_resp)
+                    break
 
         # Parse action sequences into json
         json_actions = {'number_of_steps':len(actions_and_products)}
@@ -174,9 +182,7 @@ class RXNPlanner(BaseTool):
         clean_act_str = re.sub(r'\'[A-Za-z]+\': (None|False|\'\'),? ?', '', str(json_actions))
         json_actions = ast.literal_eval(clean_act_str)
 
-        # Get final product
-        product = actions_and_products[-1]["product"]
-        llm_sum = self._summary_gpt(str(product))
+        llm_sum = self._summary_gpt(str(json_actions))
 
         return llm_sum  # return also smiles? to display in app
 
@@ -193,11 +199,11 @@ class RXNPlanner(BaseTool):
 
         prompt = (
             "Here is a chemical synthesis described as a json.\nYour task is "
-            "to describe the synthesis, as if you were giving instructions for "
-            "a recipe. Use only the substances, quantities, temperatures and in "
-            "general any action mentioned in the json file. This is your only "
-            f"source of information, do not make up anything else.\n"
-            "For this task, give as many details as possible. {json}"
+            "to describe the synthesis, as if you were giving instructions for"
+            " a recipe. Use only the substances, quantities, temperatures and "
+            "in general any action mentioned in the json file. This is your "
+            "only source of information, do not make up anything else.\n"
+            f"For this task, give as many details as possible. {json}"
         )
 
         return llm([HumanMessage(content=prompt)]).content

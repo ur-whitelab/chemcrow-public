@@ -26,7 +26,7 @@ setup(
         "molbloom",
         "paper-qa==1.1.1",
         "google-search-results",
-        "langchain>=0.0.234,<0.0.265",
+        "langchain>=0.0.234,<=.0.275",
         "nest_asyncio",
         "tiktoken",
         "rmrkl",

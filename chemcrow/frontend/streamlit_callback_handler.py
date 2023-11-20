@@ -70,7 +70,11 @@ class LLMThoughtChem(LLMThought):
         tool_name = serialized["name"]
         self._last_tool = ToolRecord(name=tool_name, input_str=input_str)
         self._container.update(
-            new_label=self._labeler.get_tool_label(self._last_tool, is_complete=False)
+            new_label=(
+                self._labeler.get_tool_label(
+                    self._last_tool, is_complete=False
+                ).replace("[", "\[").replace("]", "\]")
+            )
         )
 
         # Display note of potential long time
