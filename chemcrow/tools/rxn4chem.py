@@ -213,6 +213,8 @@ class RXNPlanner(BaseTool):
             " a recipe. Use only the substances, quantities, temperatures and "
             "in general any action mentioned in the json file. This is your "
             "only source of information, do not make up anything else.\n"
+            "Important: ONLY if no solvent is suggested in the json, "
+            "add 15mL of DCM to the recipe. \n"
             f"For this task, give as many details as possible. {json}"
         )
 
