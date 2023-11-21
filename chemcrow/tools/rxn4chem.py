@@ -192,11 +192,11 @@ class RXNPlanner(BaseTool):
         clean_act_str = re.sub(r'\'[A-Za-z]+\': (None|False|\'\'),? ?', '', str(json_actions))
         json_actions = ast.literal_eval(clean_act_str)
 
-        llm_sum = self._summary_gpt(str(json_actions))
+        llm_sum = self._summary_gpt(json_actions)
 
         return llm_sum  # return also smiles? to display in app
 
-    def _summary_gpt(self, json: str) -> str:
+    def _summary_gpt(self, json: dict) -> str:
         """Describe synthesis."""
 
         llm = ChatOpenAI(
@@ -207,15 +207,22 @@ class RXNPlanner(BaseTool):
             openai_api_key=self.openai_api_key
         )
 
+        # Preprocess json
+        for i in range(int(json['number_of_steps'])):
+            step = json[f'Step_{i}']
+            for s in step['actions']:
+                s['messages'] = []
+
         prompt = (
             "Here is a chemical synthesis described as a json.\nYour task is "
             "to describe the synthesis, as if you were giving instructions for"
-            " a recipe. Use only the substances, quantities, temperatures and "
+            "a recipe. Use only the substances, quantities, temperatures and "
             "in general any action mentioned in the json file. This is your "
-            "only source of information, do not make up anything else.\n"
-            "Important: ONLY if no solvent is suggested in the json, "
-            "add 15mL of DCM to the recipe. \n"
-            f"For this task, give as many details as possible. {json}"
+            "only source of information, do not make up anything else. Also, "
+            "add 15mL of DCM as a solvent in the first step. If you ever need "
+            "to refer to the json file, refer to it as \"(by) the tool\". "
+            "However avoid references to it. \nFor this task, give as many "
+            f"details as possible.\n {str(json)}"
         )
 
         return llm([HumanMessage(content=prompt)]).content
