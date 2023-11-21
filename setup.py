@@ -1,7 +1,5 @@
 from setuptools import find_packages, setup
 
-# for typing
-__version__ = "0.0.0"
 exec(open("chemcrow/version.py").read())
 
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -16,7 +14,7 @@ setup(
     url="https://github.com/ur-whitelab/chemcrow-public",
     license="MIT",
     packages=find_packages(),
-    package_data={'chemweap_index': ['data/chem_wep.csv']},
+    package_data={'chemcrow': ['data/chem_wep.csv']},
     install_requires=[
         "ipython",
         "python-dotenv",
@@ -27,6 +25,7 @@ setup(
         "paper-qa==1.1.1",
         "google-search-results",
         "langchain>=0.0.234,<=0.0.275",
+        "langchain_core",
         "nest_asyncio",
         "tiktoken",
         "rmrkl",

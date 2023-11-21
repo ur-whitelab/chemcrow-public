@@ -8,8 +8,10 @@ from langchain.callbacks.streamlit.streamlit_callback_handler import (
     THINKING_EMOJI,
     EXCEPTION_EMOJI
 )
+from langchain_core.schema import AgentAction, AgentFinish, LLMResult
 from typing import Any, Dict, List, Optional
 from streamlit.delta_generator import DeltaGenerator
+from chemcrow.utils import is_smiles
 
 from .utils import cdk
 
@@ -44,10 +46,11 @@ class LLMThoughtChem(LLMThought):
         # Depending on the tool name, decide what to display.
         if serialized['name'] == 'Name2SMILES':
             safe_smiles = output.replace("[", "\[").replace("]", "\]")
-            self._container.markdown(
-                f"**{safe_smiles}**{cdk(output)}",
-                unsafe_allow_html=True
-            )
+            if is_smiles(output):
+                self._container.markdown(
+                    f"**{safe_smiles}**{cdk(output)}",
+                    unsafe_allow_html=True
+                )
 
         if serialized['name'] == 'ReactionPredict':
             rxn = f"{input_tool}>>{output}"
@@ -92,8 +95,10 @@ class LLMThoughtChem(LLMThought):
             ), "_last_tool should never be null when _state == RUNNING_TOOL"
             final_label = self._labeler.get_tool_label(
                 self._last_tool, is_complete=True
-            ).replace("[", "\[").replace("]", "\]")
+            )
         self._state = LLMThoughtState.COMPLETE
+
+        final_label = final_label.replace("[", "\[").replace("]", "\]")
         if self._collapse_on_complete:
             self._container.update(new_label=final_label, new_expanded=False)
         else:
@@ -166,3 +171,12 @@ class StreamlitCallbackHandlerChem(StreamlitCallbackHandler):
             **kwargs
         )
         self._complete_current_thought()
+
+    def on_agent_finish(
+        self, finish: AgentFinish, color: Optional[str] = None, **kwargs: Any
+    ) -> None:
+        if self._current_thought is not None:
+            self._current_thought.complete(
+                self._thought_labeler.get_final_agent_thought_label().replace("[", "\[").replace("]", "\]")
+            )
+            self._current_thought = None

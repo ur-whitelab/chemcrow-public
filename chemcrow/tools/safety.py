@@ -7,13 +7,21 @@ from langchain.tools import BaseTool
 from langchain.llms import OpenAI, BaseLLM
 from chemcrow.tools import Query2SMILES
 from chemcrow.utils import is_smiles
+from time import sleep
+import urllib
 from .prompts import safety_summary_prompt, summary_each_data
 
 
 class MoleculeSafety:
 
     def __init__(self, llm: BaseLLM = None):
-        self.clintox = pd.read_csv("https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/clintox.csv.gz")
+        while True:
+            try:
+                self.clintox = pd.read_csv("https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/clintox.csv.gz")
+                break
+            except (ConnectionRefusedError, urllib.error.URLError):
+                sleep(5)
+                continue
         self.pubchem_data = {}
         self.llm = llm
 

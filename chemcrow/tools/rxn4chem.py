@@ -70,7 +70,7 @@ class RXNPlanner(BaseTool):
     openai_api_key: str = ''
     rxn4chem: RXN4ChemistryWrapper = None
     base_url: str = "https://rxn.res.ibm.com"
-    sleep_time: int = 2
+    sleep_time: int = 8
 
     def __init__(self, rxn4chem_api_key, openai_api_key):
         super(RXNPlanner, self).__init__()
@@ -81,7 +81,6 @@ class RXNPlanner(BaseTool):
             api_key=self.rxn4chem_api_key,
             base_url=self.base_url
         )
-        self.rxn4chem.create_project("ChemCrow")
         self.rxn4chem.project_id = '655b7b760fb57c001f25dc91'
 
     def _run(self, target: str) -> str:
@@ -108,10 +107,11 @@ class RXNPlanner(BaseTool):
             # Get results
             while True:
                 sleep(self.sleep_time)
-                result = self.rxn4chem.get_predict_automatic_retrosynthesis_results(
-                    response["prediction_id"]
-                )
                 try:
+                    print('Retrying autosynth')
+                    result = self.rxn4chem.get_predict_automatic_retrosynthesis_results(
+                        response["prediction_id"]
+                    )
                     paths = result["retrosynthetic_paths"]
                     if paths is not None:
                         if len(paths) > 0:
@@ -133,20 +133,29 @@ class RXNPlanner(BaseTool):
         raise NotImplementedError("Async not implemented.")
 
     def _path_to_text(self, path):
-        for _ in range(10):
+        for _ in range(20):
             sleep(self.sleep_time)
+            print(f"\nAttempting to get synthesis from sequence: Try {_}")
             response = self.rxn4chem.create_synthesis_from_sequence(
                 sequence_id=path["sequenceId"]
             )
             if "synthesis_id" in response.keys():
                 break
 
+        if 'synthesis_id' not in response.keys():
+            return path
+
         synthesis_id = response["synthesis_id"]
 
-        for _ in range(10):  # retry 10 times to prevent KeyError 'payload'
-            sleep(self.sleep_time*5)
+        for _ in range(20):  # retry 10 times to prevent KeyError 'payload'
+            print(f"\nAttempting to get nodes: Try {_}")
+            sleep(self.sleep_time)
             try:
                 nodeids = self.rxn4chem.get_node_ids(synthesis_id)
+                print(nodeids)
+                if isinstance(nodeids, list):
+                    if len(nodeids)>0:
+                        break
             except KeyError:
                 nodeids = None
                 continue
@@ -158,7 +167,8 @@ class RXNPlanner(BaseTool):
         actions_and_products = []
         for node in nodeids:
             while True:
-                sleep(3)
+                sleep(self.sleep_time)
+                print(f"\nAttempting to get data for node {node}.")
                 node_resp = self.rxn4chem.get_reaction_settings(
                     synthesis_id=synthesis_id, node_id=node
                 )
