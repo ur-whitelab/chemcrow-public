@@ -25,7 +25,7 @@ setup(
         "paper-qa==1.1.1",
         "google-search-results",
         "langchain>=0.0.234,<=0.0.275",
-        "langchain_core",
+        "langchain_core==0.0.1",
         "nest_asyncio",
         "tiktoken",
         "rmrkl",
