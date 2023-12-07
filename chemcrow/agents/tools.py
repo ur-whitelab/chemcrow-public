@@ -17,9 +17,9 @@ def make_tools(
 
     all_tools = agents.load_tools([
         "python_repl",
-        "ddg-search",
+        # "ddg-search",
         "wikipedia",
-        #"human"
+        # "human"
     ])
 
     all_tools += [
