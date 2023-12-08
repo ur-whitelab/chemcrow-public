@@ -37,7 +37,7 @@ def make_tools(
     if rxn4chem_api_key:
         all_tools += [
             RXNPredict(rxn4chem_api_key),
-            RXNPlanner(rxn4chem_api_key, openai_api_key)
+            RXNRetrosynthesis(rxn4chem_api_key, openai_api_key)
         ]
 
     return all_tools

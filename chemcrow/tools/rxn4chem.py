@@ -11,6 +11,11 @@ from chemcrow.utils import is_smiles
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import HumanMessage
 
+__all__ = [
+    "RXNPredict",
+    "RXNRetrosynthesis"
+]
+
 
 class RXN4Chem(BaseTool):
     """Wrapper for RXN4Chem functionalities."""
