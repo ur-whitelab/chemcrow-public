@@ -146,8 +146,9 @@ class RXNRetrosynthesis(RXN4Chem):
             return "Incorrect input."
 
         prediction_id = self.predict_retrosynthesis(target)
-        results = self.get_results(prediction_id)
-        procedure = self.get_action_sequence(results)
+        paths = self.get_paths(prediction_id)
+        # path_img = self.visualize_path(paths[0])
+        procedure = self.get_action_sequence(paths[0])
         return procedure
 
     async def _arun(self, cas_number):
@@ -170,7 +171,7 @@ class RXNRetrosynthesis(RXN4Chem):
         raise KeyError
 
     @RXN4Chem.retry(20, KeyError)
-    def get_results(self, prediction_id: str) -> str:
+    def get_paths(self, prediction_id: str) -> str:
         """Make api request."""
         results = self.rxn4chem.get_predict_automatic_retrosynthesis_results(
             prediction_id
@@ -180,11 +181,10 @@ class RXNRetrosynthesis(RXN4Chem):
         paths = results["retrosynthetic_paths"]
         if paths is not None:
             if len(paths) > 0:
-                return paths[0]  # simply pick first path
+                return paths
         if results["status"] == "PROCESSING":
             sleep(self.sleep_time*2)
             raise KeyError
-        print(results)
         raise KeyError
 
     def get_action_sequence(self, path):
@@ -278,7 +278,6 @@ class RXNRetrosynthesis(RXN4Chem):
             max_tokens=2000,
             openai_api_key=self.openai_api_key
         )
-        print(json)
         prompt = (
             "Here is a chemical synthesis described as a json.\nYour task is "
             "to describe the synthesis, as if you were giving instructions for"
@@ -291,3 +290,48 @@ class RXNRetrosynthesis(RXN4Chem):
             f"details as possible.\n {str(json)}"
         )
         return llm([HumanMessage(content=prompt)]).content
+
+    def visualize_path(self, path):
+        """Visualize path."""
+        from aizynthfinder import reactiontree  # type: ignore
+        rxn_dict = self._path_to_dict(path)
+        tree = reactiontree.ReactionTree.from_dict(rxn_dict)
+        return tree.to_image()
+
+    def _path_to_dict(self, path):
+        """Convert path to dict."""
+        if len(path['children']) != 0:
+            in_stock = False
+            rxn_smi = path['smiles'] + '>>'
+            for prec in path['children']:
+                rxn_smi += prec['smiles'] + '.'
+            rxn_smi = rxn_smi[:-1]
+
+            children = [
+                {
+                    "type": "reaction",
+                    "hide": False,
+                    "smiles": rxn_smi,
+                    "is_reaction": True,
+                    "metadata": {},
+                    "children": [
+                        self._path_to_dict(c) for c in path['children']
+                    ]
+                }
+            ]
+        else:
+            in_stock = True
+            children = []
+
+        return {
+            "type": "mol",
+            "route_metadata": {
+                "created_at_iteration": 1,
+                "is_solved": True
+            },
+            "hide": False,
+            "smiles": path['smiles'],
+            "is_chemical": True,
+            "in_stock": in_stock,
+            "children": children
+        }

@@ -60,9 +60,8 @@ class LLMThoughtChem(LLMThought):
                 unsafe_allow_html=True
             )
 
-        if serialized['name'] == 'ReactionPlanner':
-            # TODO
-            pass
+        if serialized['name'] == 'ReactionRetrosynthesis':
+            output = output.replace("[", "\[").replace("]", "\]")
 
     def on_tool_start(
         self, serialized: Dict[str, Any], input_str: str, **kwargs: Any
@@ -81,7 +80,7 @@ class LLMThoughtChem(LLMThought):
         )
 
         # Display note of potential long time
-        if serialized['name'] == 'ReactionPlanner':
+        if serialized['name'] == 'ReactionRetrosynthesis':
             self._container.markdown(
                 f"‼️ Note: This tool can take up to 5 minutes to complete execution ‼️",
                 unsafe_allow_html=True
