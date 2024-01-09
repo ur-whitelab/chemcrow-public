@@ -7,6 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="chemcrow",
+    python_requires=">=3.10, <3.12",  # this temporarily fixes molbloom install, which breaks with 3.12
     version=__version__,
     description="Accurate solution of reasoning-intensive chemical tasks, powered by LLMs.",
     author="Andres M Bran, Sam Cox, Andrew White, Philippe Schwaller",
@@ -14,7 +15,7 @@ setup(
     url="https://github.com/ur-whitelab/chemcrow-public",
     license="MIT",
     packages=find_packages(),
-    package_data={'chemcrow': ['data/chem_wep.csv']},
+    package_data={"chemcrow": ["data/chem_wep.csv"]},
     install_requires=[
         "ipython",
         "python-dotenv",
@@ -33,15 +34,14 @@ setup(
         "streamlit",
         "rxn4chemistry",
         "duckduckgo-search",
-        "wikipedia"
+        "wikipedia",
     ],
     test_suite="tests",
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],

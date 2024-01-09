@@ -1,9 +1,9 @@
-import pkg_resources
 import molbloom
+import pandas as pd
+import pkg_resources
 import requests
 from langchain.tools import BaseTool
 from rdkit import Chem
-import pandas as pd
 
 from chemcrow.utils import *
 
@@ -110,26 +110,21 @@ class PatentCheck(BaseTool):
 
 
 class ControlChemCheck(BaseTool):
-    name="ControlChemCheck"
-    description="Input CAS number, True if molecule is a controlled chemical."
+    name = "ControlChemCheck"
+    description = "Input CAS number, True if molecule is a controlled chemical."
 
     def _run(self, cas_number: str) -> str:
         """Checks if compound is known chemical weapon. Input CAS number."""
 
-        data_path = pkg_resources.resource_filename(
-            'chemcrow', 'data/chem_wep.csv'
-        )
+        data_path = pkg_resources.resource_filename("chemcrow", "data/chem_wep.csv")
         cw_df = pd.read_csv(data_path)
 
         try:
             if is_smiles(cas_number):
                 return "Please input a valid CAS number."
-            found = (
-                cw_df.apply(
-                    lambda row: row.astype(str).str.contains(cas_number).any(),
-                    axis=1
-                ).any()
-            )
+            found = cw_df.apply(
+                lambda row: row.astype(str).str.contains(cas_number).any(), axis=1
+            ).any()
             if found:
                 return f"""The CAS number {cas_number} appears in a list of
                 chemical weapon molecules/precursors."""
