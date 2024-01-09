@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="chemcrow",
-    python_requires=">=3.10, <3.12",  # this temporarily fixes molbloom install, which breaks with 3.12
+    python_requires=">=3.9, <3.12",  # this temporarily fixes molbloom install, which breaks with 3.12
     version=__version__,
     description="Accurate solution of reasoning-intensive chemical tasks, powered by LLMs.",
     author="Andres M Bran, Sam Cox, Andrew White, Philippe Schwaller",
