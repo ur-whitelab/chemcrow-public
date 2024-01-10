@@ -156,6 +156,7 @@ class ControlChemCheck(BaseTool):
     name="ControlChemCheck"
     description="Input CAS number, True if molecule is a controlled chemical."
     q2s = Query2SMILES()
+    q2c = Query2CAS()
     similar_control_chem_check = SimilarControlChemCheck()
 
     def _run(self, cas_number: str) -> str:
@@ -168,7 +169,8 @@ class ControlChemCheck(BaseTool):
 
         try:
             if is_smiles(cas_number):
-                return "Please input a valid CAS number."
+                return self.similar_control_chem_check._run(cas_number)
+
             found = (
                 cw_df.apply(
                     lambda row: row.astype(str).str.contains(cas_number).any(),
