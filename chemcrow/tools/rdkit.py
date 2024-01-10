@@ -1,6 +1,7 @@
 from langchain.tools import BaseTool
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem, rdMolDescriptors
+from chemcrow.utils import *
 
 
 class MolSimilarity(BaseTool):
@@ -20,11 +21,7 @@ class MolSimilarity(BaseTool):
             smiles1, smiles2 = smi_list
 
         try:
-            mol1 = Chem.MolFromSmiles(smiles1)
-            mol2 = Chem.MolFromSmiles(smiles2)
-            fp1 = AllChem.GetMorganFingerprintAsBitVect(mol1, 2, nBits=2048)
-            fp2 = AllChem.GetMorganFingerprintAsBitVect(mol2, 2, nBits=2048)
-            similarity = DataStructs.TanimotoSimilarity(fp1, fp2)
+            similarity = tanimoto(smiles1, smiles2)
 
             sim_score = {
                 0.9: "very similar",

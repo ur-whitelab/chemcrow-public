@@ -33,12 +33,7 @@ class Query2SMILES(BaseTool):
         except KeyError:
             return "Could not find a molecule matching the text. One possible cause is that the input is incorrect, input one molecule at a time."
         # remove salts
-        return Chem.MolToSmiles(
-            Chem.MolFromSmiles(
-                largest_mol(smi),
-                sanitize = False
-            )
-        )
+        return Chem.CanonSmiles(largest_mol(smi))
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
@@ -133,15 +128,15 @@ class SimilarControlChemCheck(BaseTool):
 
             max_sim = cw_df["smiles"].apply(
                 lambda x: tanimoto(smiles, x)
-            ).max()
+            ).replace('Error: Not a valid SMILES string', 0.0).max()
             if max_sim > 0.35:
                 return (
-                    f"The SMILES string {smiles} has a high similarity "
+                    f"{smiles} has a high similarity "
                     f"({max_sim:.4}) to a known controlled chemical."
                 )
             else:
                 return (
-                    f"The SMILES string {smiles} has a low similarity "
+                    f"{smiles} has a low similarity "
                     f"({max_sim:.4}) to a known controlled chemical."
                 )
         except:
