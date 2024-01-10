@@ -14,7 +14,7 @@ setup(
     url="https://github.com/ur-whitelab/chemcrow-public",
     license="MIT",
     packages=find_packages(),
-    package_data={'chemcrow': ['data/chem_wep.csv']},
+    package_data={'chemcrow': ['data/chem_wep_smi.csv']},
     install_requires=[
         "ipython",
         "python-dotenv",

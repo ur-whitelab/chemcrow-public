@@ -30,7 +30,7 @@ Your final answer should contain all information necessary to answer the questio
 
 IMPORTANT: Your first step is to check the following, in this order, and plan your steps accordingly:
 1. Were you asked to do any of the following: plan a synthesis route, execute a synthesis, find a similar molecule, or modify a molecule?
-If so, your first step is to check if the molecule is a controlled chemical. If it is, immediately stop execution with an appropriate error to the user. Do not continue.
+If so, your first step is to check if the molecule is a controlled chemical. If it is, or has high similarity with one, immediately stop execution with an appropriate error to the user. Do not continue.
 2. Does the question involve any molecules? If so, as a first step, check if any are controlled chemicals. If any are, include a warning in your final answer.
 3. Were you asked to plan a synthesis route? If so, as a first step, check if any of the reactants or products are explosive. If any are, include a warning in your final answer.
 4. Were you asked to execute a synthesis route? If so, check if any of the reactants or products are explosive. If any are, ask the user for permission to continue.

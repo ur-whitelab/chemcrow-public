@@ -1,4 +1,5 @@
 from rdkit import Chem
+from rdkit import DataStructs
 
 
 def is_smiles(text):
@@ -26,3 +27,13 @@ def canonical_smiles(smiles):
         return smi
     except Exception:
         return "Invalid SMILES string"
+
+
+def tanimoto(s1, s2):
+    """Calculate the Tanimoto similarity of two SMILES strings."""
+    try:
+        fp1 = Chem.RDKFingerprint(Chem.MolFromSmiles(s1))
+        fp2 = Chem.RDKFingerprint(Chem.MolFromSmiles(s2))
+        return DataStructs.FingerprintSimilarity(fp1, fp2)
+    except Exception:
+        return 0.0

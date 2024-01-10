@@ -33,7 +33,12 @@ class Query2SMILES(BaseTool):
         except KeyError:
             return "Could not find a molecule matching the text. One possible cause is that the input is incorrect, input one molecule at a time."
         # remove salts
-        return Chem.CanonSmiles(largest_mol(smi))
+        return Chem.MolToSmiles(
+            Chem.MolFromSmiles(
+                largest_mol(smi),
+                sanitize = False
+            )
+        )
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
@@ -109,15 +114,55 @@ class PatentCheck(BaseTool):
         raise NotImplementedError()
 
 
+class SimilarControlChemCheck(BaseTool):
+    name="SimilarityToControlChem"
+    description="Input SMILES, returns similarity to controlled chemicals."
+
+    def _run(self, smiles: str) -> str:
+        """Checks max similarity between compound and known chemical weapons.
+        Input SMILES string."""
+
+        data_path = pkg_resources.resource_filename(
+            'chemcrow', 'data/chem_wep_smi.csv'
+        )
+        cw_df = pd.read_csv(data_path)
+
+        try:
+            if not is_smiles(smiles):
+                return "Please input a valid SMILES string."
+
+            max_sim = cw_df["smiles"].apply(
+                lambda x: tanimoto(smiles, x)
+            ).max()
+            if max_sim > 0.35:
+                return (
+                    f"The SMILES string {smiles} has a high similarity "
+                    f"({max_sim:.4}) to a known controlled chemical."
+                )
+            else:
+                return (
+                    f"The SMILES string {smiles} has a low similarity "
+                    f"({max_sim:.4}) to a known controlled chemical."
+                )
+        except:
+            return "Tool error."
+
+    async def _arun(self, query: str) -> str:
+        """Use the tool asynchronously."""
+        raise NotImplementedError()
+
+
 class ControlChemCheck(BaseTool):
     name="ControlChemCheck"
     description="Input CAS number, True if molecule is a controlled chemical."
+    q2s = Query2SMILES()
+    similar_control_chem_check = SimilarControlChemCheck()
 
     def _run(self, cas_number: str) -> str:
         """Checks if compound is known chemical weapon. Input CAS number."""
 
         data_path = pkg_resources.resource_filename(
-            'chemcrow', 'data/chem_wep.csv'
+            'chemcrow', 'data/chem_wep_smi.csv'
         )
         cw_df = pd.read_csv(data_path)
 
@@ -131,15 +176,21 @@ class ControlChemCheck(BaseTool):
                 ).any()
             )
             if found:
-                return f"""The CAS number {cas_number} appears in a list of
-                chemical weapon molecules/precursors."""
+                return (
+                    f"The CAS number {cas_number} appears in a list of "
+                    "chemical weapon molecules/precursors."
+                )
             else:
-                return f"""The CAS number {cas_number} does not appear in a
-                known list of chemical weapon molecules/precursors. However,
-                the molecule may still be used as a chemical weapon."""
-        except:
+                # Get smiles of CAS number
+                smi = self.q2s._run(cas_number)
+                # Check similarity to known chemical weapons
+                return self.similar_control_chem_check._run(smi)
+
+        except Exception:
             return "Tool error."
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
         raise NotImplementedError()
+
+
