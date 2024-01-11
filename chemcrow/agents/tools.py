@@ -31,7 +31,6 @@ def make_tools(
         FuncGroups(),
         ExplosiveCheck(),
         ControlChemCheck(),
-        SimilarControlChemCheck(),
         SafetySummary(llm=llm),
         #LitSearch(llm=llm, verbose=verbose),
     ]

@@ -22,6 +22,9 @@ class MolSimilarity(BaseTool):
 
         similarity = tanimoto(smiles1, smiles2)
 
+        if isinstance(similarity, str):
+            return similarity
+
         sim_score = {
             0.9: "very similar",
             0.8: "similar",
