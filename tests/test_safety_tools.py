@@ -1,7 +1,6 @@
 import pytest
 from dotenv import load_dotenv
-from chemcrow.tools.safety import SafetySummary, ExplosiveCheck
-from chemcrow.tools.databases import ControlChemCheck
+from chemcrow.tools.safety import SafetySummary, ExplosiveCheck, ControlChemCheck
 
 load_dotenv()
 
