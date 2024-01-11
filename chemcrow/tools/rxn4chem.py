@@ -1,20 +1,19 @@
 """Wrapper for RXN4Chem functionalities."""
 
-import re
-import ast
 import abc
-from typing import Optional
-from langchain.tools import BaseTool
+import ast
+import re
 from time import sleep
-from rxn4chemistry import RXN4ChemistryWrapper  # type: ignore
-from chemcrow.utils import is_smiles
+from typing import Optional
+
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import HumanMessage
+from langchain.tools import BaseTool
+from rxn4chemistry import RXN4ChemistryWrapper  # type: ignore
 
-__all__ = [
-    "RXNPredict",
-    "RXNRetrosynthesis"
-]
+from chemcrow.utils import is_smiles
+
+__all__ = ["RXNPredict", "RXNRetrosynthesis"]
 
 
 class RXN4Chem(BaseTool):
@@ -33,10 +32,9 @@ class RXN4Chem(BaseTool):
 
         self.rxn4chem_api_key = rxn4chem_api_key
         self.rxn4chem = RXN4ChemistryWrapper(
-            api_key=self.rxn4chem_api_key,
-            base_url=self.base_url
+            api_key=self.rxn4chem_api_key, base_url=self.base_url
         )
-        self.rxn4chem.project_id = '655b7b760fb57c001f25dc91'
+        self.rxn4chem.project_id = "655b7b760fb57c001f25dc91"
 
     @abc.abstractmethod
     def _run(self, smiles: str):  # type: ignore
@@ -60,6 +58,7 @@ class RXN4Chem(BaseTool):
         :param Exceptions: Lists of exceptions that trigger a retry attempt
         :type Exceptions: Tuple of Exceptions
         """
+
         def decorator(func):
             def newfn(*args, **kwargs):
                 attempt = 0
@@ -69,12 +68,14 @@ class RXN4Chem(BaseTool):
                         return func(*args, **kwargs)
                     except exceptions:
                         print(
-                            'Exception thrown when attempting to run %s, '
-                            'attempt %d of %d' % (func, attempt, times)
+                            "Exception thrown when attempting to run %s, "
+                            "attempt %d of %d" % (func, attempt, times)
                         )
                         attempt += 1
                 return func(*args, **kwargs)
+
             return newfn
+
         return decorator
 
 
@@ -111,9 +112,7 @@ class RXNPredict(RXN4Chem):
     @RXN4Chem.retry(10, KeyError)
     def get_results(self, prediction_id: str) -> str:
         """Make api request."""
-        results = self.rxn4chem.get_predict_reaction_results(
-            prediction_id
-        )
+        results = self.rxn4chem.get_predict_reaction_results(prediction_id)
         if "payload" in results["response"].keys():
             return results["response"]["payload"]["attempts"][0]
         else:
@@ -132,7 +131,7 @@ class RXNRetrosynthesis(RXN4Chem):
         "Obtain the synthetic route to a chemical compound. "
         "Takes as input the SMILES of the product, returns recipe."
     )
-    openai_api_key: str = ''
+    openai_api_key: str = ""
 
     def __init__(self, rxn4chem_api_key, openai_api_key):
         """Init object."""
@@ -183,20 +182,20 @@ class RXNRetrosynthesis(RXN4Chem):
             if len(paths) > 0:
                 return paths
         if results["status"] == "PROCESSING":
-            sleep(self.sleep_time*2)
+            sleep(self.sleep_time * 2)
             raise KeyError
         raise KeyError
 
     def get_action_sequence(self, path):
         """Get sequence of actions."""
         response = self.synth_from_sequence(path["sequenceId"])
-        if 'synthesis_id' not in response.keys():
+        if "synthesis_id" not in response.keys():
             return path
 
         synthesis_id = response["synthesis_id"]
         nodeids = self.get_node_ids(synthesis_id)
         if nodeids is None:
-            return 'Tool error'
+            return "Tool error"
 
         # Attempt to get actions for each node + product information
         real_nodes = []
@@ -205,7 +204,7 @@ class RXNRetrosynthesis(RXN4Chem):
             node_resp = self.get_reaction_settings(
                 synthesis_id=synthesis_id, node_id=node
             )
-            if 'actions' in node_resp.keys():
+            if "actions" in node_resp.keys():
                 real_nodes.append(node)
                 actions_and_products.append(node_resp)
 
@@ -216,9 +215,7 @@ class RXNRetrosynthesis(RXN4Chem):
     @RXN4Chem.retry(20, KeyError)
     def synth_from_sequence(self, sequence_id: str) -> str:
         """Make api request."""
-        response = self.rxn4chem.create_synthesis_from_sequence(
-            sequence_id=sequence_id
-        )
+        response = self.rxn4chem.create_synthesis_from_sequence(sequence_id=sequence_id)
         if "synthesis_id" in response.keys():
             return response
         raise KeyError
@@ -226,9 +223,7 @@ class RXNRetrosynthesis(RXN4Chem):
     @RXN4Chem.retry(20, KeyError)
     def get_node_ids(self, synthesis_id: str):
         """Make api request."""
-        response = self.rxn4chem.get_node_ids(
-            synthesis_id=synthesis_id
-        )
+        response = self.rxn4chem.get_node_ids(synthesis_id=synthesis_id)
         if isinstance(response, list):
             if len(response) > 0:
                 return response
@@ -240,30 +235,28 @@ class RXNRetrosynthesis(RXN4Chem):
         response = self.rxn4chem.get_reaction_settings(
             synthesis_id=synthesis_id, node_id=node_id
         )
-        if 'actions' in response.keys():
+        if "actions" in response.keys():
             return response
-        elif 'response' in response.keys():
-            if 'error' in response['response'].keys():
-                if response['response']['error'] == 'Too Many Requests':
-                    sleep(self.sleep_time*2)
+        elif "response" in response.keys():
+            if "error" in response["response"].keys():
+                if response["response"]["error"] == "Too Many Requests":
+                    sleep(self.sleep_time * 2)
                     raise KeyError
             return response
         raise KeyError
 
     def _preproc_actions(self, actions_and_products):
         """Preprocess actions."""
-        json_actions = {'number_of_steps': len(actions_and_products)}
+        json_actions = {"number_of_steps": len(actions_and_products)}
 
         for i, actn in enumerate(actions_and_products):
-            json_actions[f'Step_{i}'] = {}
-            json_actions[f'Step_{i}']['actions'] = actn['actions']
-            json_actions[f'Step_{i}']['product'] = actn['product']
+            json_actions[f"Step_{i}"] = {}
+            json_actions[f"Step_{i}"]["actions"] = actn["actions"]
+            json_actions[f"Step_{i}"]["product"] = actn["product"]
 
         # Clean actions to use less tokens: Remove False, None, ''
         clean_act_str = re.sub(
-            r'\'[A-Za-z]+\': (None|False|\'\'),? ?',
-            '',
-            str(json_actions)
+            r"\'[A-Za-z]+\': (None|False|\'\'),? ?", "", str(json_actions)
         )
         json_actions = ast.literal_eval(clean_act_str)
 
@@ -276,7 +269,7 @@ class RXNRetrosynthesis(RXN4Chem):
             model_name="gpt-3.5-turbo-16k",
             request_timeout=2000,
             max_tokens=2000,
-            openai_api_key=self.openai_api_key
+            openai_api_key=self.openai_api_key,
         )
         prompt = (
             "Here is a chemical synthesis described as a json.\nYour task is "
@@ -285,7 +278,7 @@ class RXNRetrosynthesis(RXN4Chem):
             "in general any action mentioned in the json file. This is your "
             "only source of information, do not make up anything else. Also, "
             "add 15mL of DCM as a solvent in the first step. If you ever need "
-            "to refer to the json file, refer to it as \"(by) the tool\". "
+            'to refer to the json file, refer to it as "(by) the tool". '
             "However avoid references to it. \nFor this task, give as many "
             f"details as possible.\n {str(json)}"
         )
@@ -294,17 +287,18 @@ class RXNRetrosynthesis(RXN4Chem):
     def visualize_path(self, path):
         """Visualize path."""
         from aizynthfinder import reactiontree  # type: ignore
+
         rxn_dict = self._path_to_dict(path)
         tree = reactiontree.ReactionTree.from_dict(rxn_dict)
         return tree.to_image()
 
     def _path_to_dict(self, path):
         """Convert path to dict."""
-        if len(path['children']) != 0:
+        if len(path["children"]) != 0:
             in_stock = False
-            rxn_smi = path['smiles'] + '>>'
-            for prec in path['children']:
-                rxn_smi += prec['smiles'] + '.'
+            rxn_smi = path["smiles"] + ">>"
+            for prec in path["children"]:
+                rxn_smi += prec["smiles"] + "."
             rxn_smi = rxn_smi[:-1]
 
             children = [
@@ -314,9 +308,7 @@ class RXNRetrosynthesis(RXN4Chem):
                     "smiles": rxn_smi,
                     "is_reaction": True,
                     "metadata": {},
-                    "children": [
-                        self._path_to_dict(c) for c in path['children']
-                    ]
+                    "children": [self._path_to_dict(c) for c in path["children"]],
                 }
             ]
         else:
@@ -325,13 +317,10 @@ class RXNRetrosynthesis(RXN4Chem):
 
         return {
             "type": "mol",
-            "route_metadata": {
-                "created_at_iteration": 1,
-                "is_solved": True
-            },
+            "route_metadata": {"created_at_iteration": 1, "is_solved": True},
             "hide": False,
-            "smiles": path['smiles'],
+            "smiles": path["smiles"],
             "is_chemical": True,
             "in_stock": in_stock,
-            "children": children
+            "children": children,
         }

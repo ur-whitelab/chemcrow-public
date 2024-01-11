@@ -1,7 +1,7 @@
 import pytest
 from dotenv import load_dotenv
-from pydantic import ValidationError
 from langchain.chat_models import ChatOpenAI
+from pydantic import ValidationError
 
 from chemcrow.tools.search import LitSearch
 
@@ -29,4 +29,3 @@ def test_litsearch(questions):
             ans = searchtool(q)
             assert isinstance(ans, str)
             assert len(ans) > 0
-
