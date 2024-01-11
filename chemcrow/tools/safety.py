@@ -317,8 +317,6 @@ class ControlChemCheck(BaseTool):
         )
         cw_df = pd.read_csv(data_path)
 
-        #first lets just try to convert cas to smiles to see 
-
 
         try:
             if is_smiles(cas_number):
