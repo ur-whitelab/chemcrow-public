@@ -20,27 +20,24 @@ class MolSimilarity(BaseTool):
         else:
             smiles1, smiles2 = smi_list
 
-        try:
-            similarity = tanimoto(smiles1, smiles2)
+        similarity = tanimoto(smiles1, smiles2)
 
-            sim_score = {
-                0.9: "very similar",
-                0.8: "similar",
-                0.7: "somewhat similar",
-                0.6: "not very similar",
-                0: "not similar",
-            }
-            if similarity == 1:
-                return "Error: Input Molecules Are Identical"
-            else:
-                val = sim_score[
-                    max(key for key in sim_score.keys() if key <= round(similarity, 1))
-                ]
-                message = f"The Tanimoto similarity between {smiles1} and {smiles2} is {round(similarity, 4)},\
-                indicating that the two molecules are {val}."
-            return message
-        except (TypeError, ValueError, AttributeError):
-            return "Error: Not a valid SMILES string"
+        sim_score = {
+            0.9: "very similar",
+            0.8: "similar",
+            0.7: "somewhat similar",
+            0.6: "not very similar",
+            0: "not similar",
+        }
+        if similarity == 1:
+            return "Error: Input Molecules Are Identical"
+        else:
+            val = sim_score[
+                max(key for key in sim_score.keys() if key <= round(similarity, 1))
+            ]
+            message = f"The Tanimoto similarity between {smiles1} and {smiles2} is {round(similarity, 4)},\
+            indicating that the two molecules are {val}."
+        return message
 
     async def _arun(self, smiles_pair: str) -> str:
         """Use the tool asynchronously."""

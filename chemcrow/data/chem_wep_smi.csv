@@ -39,13 +39,13 @@ CAS No.,Source,smiles
 (10026-13-8),australia group,ClP(Cl)(Cl)(Cl)Cl
 (75-97-8),australia group,CC(=O)C(C)(C)C
 (151-50-8),australia group,[C-]#N
-(7789-29-9),australia group,"Could not find a molecule matching the text. One possible cause is that the input is incorrect, input one molecule at a time."
+(7789-29-9),australia group,C
 (1341-49-7),australia group,[NH4+]
 (1333-83-1),australia group,[Na+]
 (7681-49-4),australia group,[Na+]
 (143-33-9),australia group,[C-]#N
 (102-71-6),australia group,OCCN(CCO)CCO
-(1314-80-3),australia group,"Could not find a molecule matching the text. One possible cause is that the input is incorrect, input one molecule at a time."
+(1314-80-3),australia group,C
 (108-18-9),australia group,CC(C)NC(C)C
 (100-37-8),australia group,CCN(CC)CCO
 (1313-82-2),australia group,[SH-]
@@ -86,8 +86,8 @@ CAS No.,Source,smiles
 (1342422-35-8),australia group,CCCC(=N)N(CCC)CCC
 (1315467-17-4),australia group,CCCC(=N)N(C(C)C)C(C)C
 (321881-25-8),australia group,CC(C)C(=N)N(C)C
-(1342789-47-2),australia group,"Could not find a molecule matching the text. One possible cause is that the input is incorrect, input one molecule at a time."
-(1342700-45-1),australia group,"Could not find a molecule matching the text. One possible cause is that the input is incorrect, input one molecule at a time."
+(1342789-47-2),australia group,C
+(1342700-45-1),australia group,C
 (107-44-8),OPCW schedule 1,CC(C)OP(C)(=O)F
 (96-64-0),OPCW schedule 1,CC(OP(C)(=O)F)C(C)(C)C
 (77-81-6),OPCW schedule 1,CCOP(=O)(C#N)N(C)C
@@ -108,7 +108,7 @@ CAS No.,Source,smiles
 (51-75-2),OPCW schedule 1,CN(CCCl)CCCl
 (555-77-1),OPCW schedule 1,ClCCN(CCCl)CCCl
 (35523-89-8),OPCW schedule 1,NC(=O)OC[C@@H]1N=C(N)N2CCC(O)(O)[C@@]23NC(N)=N[C@@H]13
-(9009-86-3),OPCW schedule 1,"Could not find a molecule matching the text. One possible cause is that the input is incorrect, input one molecule at a time."
+(9009-86-3),OPCW schedule 1,C
 (2387495-99-8),OPCW schedule 1,CCCCCCCCCCN(CCCCCCCCCC)C(CCCCCCCCC)=NP(=O)(F)CCCCCCCCCC
 (2387496-12-8),OPCW schedule 1,CCN(CC)C(C)=NP(C)(=O)F
 (2387496-00-4),OPCW schedule 1,CCCCCCCCCCOP(=O)(F)N=C(CCCCCCCCC)N(CCCCCCCCCC)CCCCCCCCCC
