@@ -1,8 +1,9 @@
 import molbloom
+import pandas as pd
+import pkg_resources
 import requests
 from langchain.tools import BaseTool
 from rdkit import Chem
-import pandas as pd
 
 from chemcrow.utils import *
 
