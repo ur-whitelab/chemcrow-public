@@ -1,3 +1,5 @@
+import urllib
+from time import sleep
 import requests
 import pandas as pd
 import pkg_resources
@@ -10,7 +12,7 @@ from langchain.llms import BaseLLM, OpenAI
 from langchain.tools import BaseTool
 
 from chemcrow.tools import Query2SMILES
-from chemcrow.utils import is_smiles
+from chemcrow.utils import is_smiles, tanimoto
 from .prompts import safety_summary_prompt, summary_each_data
 from .databases import Query2CAS, Query2SMILES
 
@@ -230,6 +232,7 @@ class ExplosiveCheck(BaseTool):
 
     async def _arun(self, cas_number):
         raise NotImplementedError("Async not implemented.")
+
 
 class SimilarControlChemCheck(BaseTool):
     name="SimilarityToControlChem"
