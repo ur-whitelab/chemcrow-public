@@ -21,7 +21,7 @@ setup(
         "python-dotenv",
         "rdkit",
         "synspace",
-        "openai==0.27.8",
+        "openai",
         "molbloom",
         "paper-qa==1.1.1",
         "google-search-results",
