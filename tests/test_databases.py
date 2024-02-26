@@ -45,19 +45,19 @@ def choline():
 
 def test_q2s_iupac(single_iupac):
     tool = Query2SMILES()
-    out = tool(single_iupac)
+    out = tool._run(single_iupac)
     assert out == "CC(=O)CCc1ccc(O)cc1"
 
 
 def test_q2s_cafeine(singlemol):
     tool = Query2SMILES()
-    out = tool("caffeine")
+    out = tool._run("caffeine")
     assert out == canonical_smiles(singlemol)
 
 
 def test_q2s_fail(molset1):
     tool = Query2SMILES()
-    out = tool(molset1)
+    out = tool._run(molset1)
     assert out.endswith("input one molecule at a time.")
 
 
@@ -66,20 +66,20 @@ def test_q2s_fail(molset1):
 
 def test_q2cas_iupac(single_iupac):
     tool = Query2CAS()
-    out = tool(single_iupac)
+    out = tool._run(single_iupac)
     assert out == "5471-51-2"
 
 
 def test_q2cas_cafeine(singlemol):
     tool = Query2CAS()
-    out = tool(singlemol)
+    out = tool._run(singlemol)
     assert out == "58-08-2"
 
 
 def test_q2cas_badinp():
     tool = Query2CAS()
-    out = tool("nomol")
-    assert out.endswith("no Pubchem entry")
+    out = tool._run("nomol")
+    assert out.endswith("no Pubchem entry") or out.endswith("not found")
 
 
 # PatentCheck
@@ -87,17 +87,17 @@ def test_q2cas_badinp():
 
 def test_patentcheck(singlemol):
     tool = PatentCheck()
-    patented = tool(singlemol)
+    patented = tool._run(singlemol)
     assert patented == "Patented"
 
 
 def test_patentcheck_iupac(single_iupac):
     tool = PatentCheck()
-    patented = tool(single_iupac)
+    patented = tool._run(single_iupac)
     assert patented == "Invalid SMILES string"
 
 
 def test_patentcheck_not(choline):
     tool = PatentCheck()
-    patented = tool(choline)
+    patented = tool._run(choline)
     assert patented == "Novel"

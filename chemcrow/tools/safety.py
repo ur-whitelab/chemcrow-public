@@ -12,7 +12,6 @@ from langchain.llms import BaseLLM
 from langchain.tools import BaseTool
 from rdkit import Chem
 
-from chemcrow.tools import Query2SMILES
 from chemcrow.utils import *
 from chemcrow.utils import is_smiles, tanimoto
 
@@ -23,6 +22,8 @@ def query2smiles(
     query: str,
     url: str = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}",
 ) -> str:
+    if url is None:
+        url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}"
     r = requests.get(url.format(query, "property/IsomericSMILES/JSON"))
     # convert the response to a json object
     data = r.json()
@@ -249,7 +250,7 @@ class SafetySummary(BaseTool):
     mol_safety: MoleculeSafety = None
 
     def __init__(self, llm):
-        super(SafetySummary, self).__init__()
+        super().__init__()
         self.mol_safety = MoleculeSafety(llm=llm)
         self.llm = llm
         prompt = PromptTemplate(
@@ -277,7 +278,7 @@ class ExplosiveCheck(BaseTool):
     mol_safety: MoleculeSafety = None
 
     def __init__(self):
-        super(ExplosiveCheck, self).__init__()
+        super().__init__()
         self.mol_safety = MoleculeSafety()
 
     def _run(self, cas_number):
@@ -384,7 +385,7 @@ class Query2SMILES(BaseTool):
     def __init__(
         self,
     ):
-        super(Query2SMILES, self).__init__()
+        super().__init__()
         self.url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}"
 
     def _run(self, query: str) -> str:
@@ -412,7 +413,7 @@ class Query2CAS(BaseTool):
     def __init__(
         self,
     ):
-        super(Query2CAS, self).__init__()
+        super().__init__()
         self.url_cid = (
             "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/{}/{}/cids/JSON"
         )
