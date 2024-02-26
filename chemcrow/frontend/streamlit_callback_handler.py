@@ -1,16 +1,18 @@
+from typing import Any, Dict, List, Optional
+
 from langchain.callbacks.streamlit.streamlit_callback_handler import (
-    StreamlitCallbackHandler,
-    LLMThought,
-    LLMThoughtState,
-    LLMThoughtLabeler,
-    ToolRecord,
     CHECKMARK_EMOJI,
+    EXCEPTION_EMOJI,
     THINKING_EMOJI,
-    EXCEPTION_EMOJI
+    LLMThought,
+    LLMThoughtLabeler,
+    LLMThoughtState,
+    StreamlitCallbackHandler,
+    ToolRecord,
 )
 from langchain_core.schema import AgentAction, AgentFinish, LLMResult
-from typing import Any, Dict, List, Optional
 from streamlit.delta_generator import DeltaGenerator
+
 from chemcrow.utils import is_smiles
 
 from .utils import cdk
@@ -42,25 +44,22 @@ class LLMThoughtChem(LLMThought):
         serialized: dict = {},
         **kwargs: Any,
     ) -> None:
-
         # Depending on the tool name, decide what to display.
-        if serialized['name'] == 'Name2SMILES':
+        if serialized["name"] == "Name2SMILES":
             safe_smiles = output.replace("[", "\[").replace("]", "\]")
             if is_smiles(output):
                 self._container.markdown(
-                    f"**{safe_smiles}**{cdk(output)}",
-                    unsafe_allow_html=True
+                    f"**{safe_smiles}**{cdk(output)}", unsafe_allow_html=True
                 )
 
-        if serialized['name'] == 'ReactionPredict':
+        if serialized["name"] == "ReactionPredict":
             rxn = f"{input_tool}>>{output}"
             safe_smiles = rxn.replace("[", "\[").replace("]", "\]")
             self._container.markdown(
-                f"**{safe_smiles}**{cdk(rxn)}",
-                unsafe_allow_html=True
+                f"**{safe_smiles}**{cdk(rxn)}", unsafe_allow_html=True
             )
 
-        if serialized['name'] == 'ReactionRetrosynthesis':
+        if serialized["name"] == "ReactionRetrosynthesis":
             output = output.replace("[", "\[").replace("]", "\]")
 
     def on_tool_start(
@@ -73,17 +72,17 @@ class LLMThoughtChem(LLMThought):
         self._last_tool = ToolRecord(name=tool_name, input_str=input_str)
         self._container.update(
             new_label=(
-                self._labeler.get_tool_label(
-                    self._last_tool, is_complete=False
-                ).replace("[", "\[").replace("]", "\]")
+                self._labeler.get_tool_label(self._last_tool, is_complete=False)
+                .replace("[", "\[")
+                .replace("]", "\]")
             )
         )
 
         # Display note of potential long time
-        if serialized['name'] == 'ReactionRetrosynthesis':
+        if serialized["name"] == "ReactionRetrosynthesis":
             self._container.markdown(
                 f"‼️ Note: This tool can take up to 5 minutes to complete execution ‼️",
-                unsafe_allow_html=True
+                unsafe_allow_html=True,
             )
 
     def complete(self, final_label: Optional[str] = None) -> None:
@@ -117,10 +116,10 @@ class StreamlitCallbackHandlerChem(StreamlitCallbackHandler):
     ):
         super(StreamlitCallbackHandlerChem, self).__init__(
             parent_container,
-            max_thought_containers = max_thought_containers,
-            expand_new_thoughts = expand_new_thoughts,
-            collapse_completed_thoughts = collapse_completed_thoughts,
-            thought_labeler = thought_labeler
+            max_thought_containers=max_thought_containers,
+            expand_new_thoughts=expand_new_thoughts,
+            collapse_completed_thoughts=collapse_completed_thoughts,
+            thought_labeler=thought_labeler,
         )
 
         self._output_placeholder = output_placeholder
@@ -158,16 +157,15 @@ class StreamlitCallbackHandlerChem(StreamlitCallbackHandler):
         llm_prefix: Optional[str] = None,
         **kwargs: Any,
     ) -> None:
-
         self._require_current_thought().on_tool_end(
             output,
             color,
             observation_prefix,
             llm_prefix,
-            output_ph = self._output_placeholder,
-            input_tool = self._last_input,
-            serialized = self._serialized,
-            **kwargs
+            output_ph=self._output_placeholder,
+            input_tool=self._last_input,
+            serialized=self._serialized,
+            **kwargs,
         )
         self._complete_current_thought()
 
@@ -176,6 +174,8 @@ class StreamlitCallbackHandlerChem(StreamlitCallbackHandler):
     ) -> None:
         if self._current_thought is not None:
             self._current_thought.complete(
-                self._thought_labeler.get_final_agent_thought_label().replace("[", "\[").replace("]", "\]")
+                self._thought_labeler.get_final_agent_thought_label()
+                .replace("[", "\[")
+                .replace("]", "\]")
             )
             self._current_thought = None

@@ -1,7 +1,8 @@
 import requests
-from rdkit import Chem
 from langchain import LLMChain, PromptTemplate
 from langchain.chat_models import ChatOpenAI
+from rdkit import Chem
+
 
 def cdk(smiles):
     """
@@ -9,7 +10,7 @@ def cdk(smiles):
     """
 
     url = "https://www.simolecule.com/cdkdepict/depict/wob/svg"
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
     response = requests.get(
         url,
         headers=headers,
@@ -20,6 +21,6 @@ def cdk(smiles):
             "w": 150,
             "h": 80,
             "abbr": "off",
-        }
+        },
     )
     return response.text

@@ -1,30 +1,36 @@
 import os
 import re
-import paperqa
+
 import langchain
+import paperqa
 from langchain import SerpAPIWrapper
-from pypdf.errors import PdfReadError
-from langchain.tools import BaseTool
 from langchain.base_language import BaseLanguageModel
+from langchain.tools import BaseTool
+from pypdf.errors import PdfReadError
 
 
 def paper_search(search, pdir="query"):
     try:
         import paperscraper
+
         return paperscraper.search_papers(search, pdir=pdir)
     except (KeyError, ModuleNotFoundError):
         return {}
+
 
 def partial(func, *args, **kwargs):
     """
     This function is a workaround for the partial function error in new langchain versions.
     This can be removed if langchain adds support for partial functions.
     """
+
     def wrapped(*args_wrapped, **kwargs_wrapped):
         final_args = args + args_wrapped
         final_kwargs = {**kwargs, **kwargs_wrapped}
         return func(*final_args, **final_kwargs)
+
     return wrapped
+
 
 def scholar2result_llm(llm, query, search=None):
     """Useful to answer questions that require technical knowledge. Ask a specific question."""
@@ -65,7 +71,7 @@ def web_search(keywords, search_engine="google"):
         ).run(keywords)
     except:
         return "No results, try another search"
-    
+
 
 class LitSearch(BaseTool):
     name = "LiteratureSearch"
@@ -74,18 +80,23 @@ class LitSearch(BaseTool):
         "Do not mention any specific molecule names, but use more general features to formulate your questions."
     )
     llm: BaseLanguageModel
+
     def _run(self, query: str) -> str:
         return scholar2result_llm(self.llm, query)
+
     async def _arun(self, query: str) -> str:
         raise NotImplementedError("Async not implemented")
-    
+
+
 class WebSearch(BaseTool):
     name = "WebSearch"
     description = (
         "Input a specific question, returns an answer from web search. "
         "Do not mention any specific molecule names, but use more general features to formulate your questions."
     )
+
     def _run(self, query: str) -> str:
         return web_search(query)
+
     async def _arun(self, query: str) -> str:
         raise NotImplementedError("Async not implemented")
