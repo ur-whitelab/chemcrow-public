@@ -30,7 +30,7 @@ setup(
         "nest_asyncio",
         "tiktoken",
         "rmrkl",
-        # "paper-scraper@git+https://github.com/blackadad/paper-scraper.git",
+        "paper-scraper@git+https://github.com/blackadad/paper-scraper.git",
         "streamlit",
         "rxn4chemistry",
         "duckduckgo-search",

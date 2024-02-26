@@ -1,6 +1,8 @@
 import os
 import re
+import os
 
+import paperscraper
 import langchain
 import paperqa
 from langchain import SerpAPIWrapper
@@ -9,47 +11,38 @@ from langchain.tools import BaseTool
 from pypdf.errors import PdfReadError
 
 
-def paper_search(search, pdir="query"):
-    try:
-        import paperscraper
 
+def paper_scraper(search: str, pdir: str = "query") -> dict:
+    try:
         return paperscraper.search_papers(search, pdir=pdir)
-    except (KeyError, ModuleNotFoundError):
+    except KeyError:
         return {}
 
 
-def partial(func, *args, **kwargs):
-    """
-    This function is a workaround for the partial function error in new langchain versions.
-    This can be removed if langchain adds support for partial functions.
-    """
-
-    def wrapped(*args_wrapped, **kwargs_wrapped):
-        final_args = args + args_wrapped
-        final_kwargs = {**kwargs, **kwargs_wrapped}
-        return func(*final_args, **final_kwargs)
-
-    return wrapped
-
-
-def scholar2result_llm(llm, query, search=None):
-    """Useful to answer questions that require technical knowledge. Ask a specific question."""
-
+def paper_search(llm, query):
     prompt = langchain.prompts.PromptTemplate(
         input_variables=["question"],
-        template="I would like to find scholarly papers to answer this question: {question}. "
-        'A search query that would bring up papers that can answer this question would be: "',
+        template="""
+        I would like to find scholarly papers to answer
+        this question: {question}. Your response must be at
+        most 10 words long.
+        'A search query that would bring up papers that can answer
+        this question would be: '""",
     )
-    query_chain = langchain.chains.LLMChain(llm=llm, prompt=prompt)
 
-    if not os.path.isdir("./query"):
+    query_chain = langchain.chains.llm.LLMChain(llm=llm, prompt=prompt)
+    if not os.path.isdir("./query"):  # todo: move to ckpt
         os.mkdir("query/")
-
-    if search is None:
-        search = query_chain.run(query)
+    search = query_chain.run(query)
     print("\nSearch:", search)
-    papers = paper_search(search, pdir=f"query/{re.sub(' ', '', search)}")
+    papers = paper_scraper(search, pdir=f"query/{re.sub(' ', '', search)}")
+    return papers
 
+
+def scholar2result_llm(llm, query, k=5, max_sources=2):
+    """Useful to answer questions that require
+    technical knowledge. Ask a specific question."""
+    papers = paper_search(llm, query)
     if len(papers) == 0:
         return "Not enough papers found"
     docs = paperqa.Docs(llm=llm)
@@ -57,12 +50,32 @@ def scholar2result_llm(llm, query, search=None):
     for path, data in papers.items():
         try:
             docs.add(path, data["citation"])
-        except (ValueError, FileNotFoundError, PdfReadError) as e:
+        except (ValueError, FileNotFoundError, PdfReadError):
             not_loaded += 1
 
     print(f"\nFound {len(papers.items())} papers but couldn't load {not_loaded}")
-    return docs.query(query, length_prompt="about 100 words").answer
+    answer = docs.query(query, k=k, max_sources=max_sources).formatted_answer
+    return answer
 
+
+class Scholar2ResultLLM(BaseTool):
+    name = "LiteratureSearch"
+    description = (
+        "Useful to answer questions that require technical "
+        "knowledge. Ask a specific question."
+    )
+    llm: BaseLanguageModel = None
+
+    def __init__(self, llm):
+        super().__init__()
+        self.llm = llm
+
+    def _run(self, query) -> str:
+        return scholar2result_llm(self.llm, query)
+
+    async def _arun(self, query) -> str:
+        """Use the tool asynchronously."""
+        raise NotImplementedError("this tool does not support async")
 
 def web_search(keywords, search_engine="google"):
     try:
@@ -71,21 +84,6 @@ def web_search(keywords, search_engine="google"):
         ).run(keywords)
     except:
         return "No results, try another search"
-
-
-class LitSearch(BaseTool):
-    name = "LiteratureSearch"
-    description = (
-        "Input a specific question, returns an answer from literature search. "
-        "Do not mention any specific molecule names, but use more general features to formulate your questions."
-    )
-    llm: BaseLanguageModel
-
-    def _run(self, query: str) -> str:
-        return scholar2result_llm(self.llm, query)
-
-    async def _arun(self, query: str) -> str:
-        raise NotImplementedError("Async not implemented")
 
 
 class WebSearch(BaseTool):
