@@ -107,4 +107,3 @@ class PatentCheck(BaseTool):
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
         raise NotImplementedError()
-
