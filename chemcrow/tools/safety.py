@@ -212,7 +212,7 @@ class ExplosiveCheck(BaseTool):
     mol_safety: MoleculeSafety = None
 
     def __init__(self):
-        super(ExplosiveCheck, self).__init__()
+        super().__init__()
         self.mol_safety = MoleculeSafety()
 
     def _run(self, cas_number):
