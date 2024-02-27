@@ -11,73 +11,41 @@ import tiktoken
 from langchain import LLMChain, PromptTemplate
 from langchain.llms import BaseLLM
 from langchain.tools import BaseTool
-from rdkit import Chem
 
 from chemcrow.utils import *
-from chemcrow.utils import is_smiles, tanimoto
+from chemcrow.utils import (
+    is_multiple_smiles,
+    is_smiles,
+    query2cas,
+    query2smiles,
+    split_smiles,
+    tanimoto,
+)
 
 from .prompts import safety_summary_prompt, summary_each_data
 
 
-def query2smiles(
-    query: str,
-    url: str = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}",
-) -> str:
-    if url is None:
-        url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}"
-    r = requests.get(url.format(query, "property/IsomericSMILES/JSON"))
-    # convert the response to a json object
-    data = r.json()
-    # return the SMILES string
-    try:
-        smi = data["PropertyTable"]["Properties"][0]["IsomericSMILES"]
-    except KeyError:
-        return "Could not find a molecule matching the text. One possible cause is that the input is incorrect, input one molecule at a time."
-    return str(Chem.CanonSmiles(largest_mol(smi)))
-
-
-def query2cas(query: str, url_cid: str, url_data: str):
-    try:
-        mode = "name"
-        if is_smiles(query):
-            mode = "smiles"
-        url_cid = url_cid.format(mode, query)
-        cid = requests.get(url_cid).json()["IdentifierList"]["CID"][0]
-        url_data = url_data.format(cid)
-        data = requests.get(url_data).json()
-    except (requests.exceptions.RequestException, KeyError):
-        raise ValueError("Invalid molecule input, no Pubchem entry")
-
-    try:
-        for section in data["Record"]["Section"]:
-            if section.get("TOCHeading") == "Names and Identifiers":
-                for subsection in section["Section"]:
-                    if subsection.get("TOCHeading") == "Other Identifiers":
-                        for subsubsection in subsection["Section"]:
-                            if subsubsection.get("TOCHeading") == "CAS":
-                                return subsubsection["Information"][0]["Value"][
-                                    "StringWithMarkup"
-                                ][0]["String"]
-    except KeyError:
-        raise ValueError("Invalid molecule input, no Pubchem entry")
-
-    raise ValueError("CAS number not found")
-
-
 class PatentCheck(BaseTool):
     name = "PatentCheck"
-    description = "Input SMILES, returns if molecule is patented"
+    description = "Input SMILES, returns if molecule is patented. You may also input several SMILES, separated by a period."
 
     def _run(self, smiles: str) -> str:
         """Checks if compound is patented. Give this tool only one SMILES string"""
+        if is_multiple_smiles(smiles):
+            smiles_list = split_smiles(smiles)
+        else:
+            smiles_list = [smiles]
         try:
-            r = molbloom.buy(smiles, canonicalize=True, catalog="surechembl")
+            output_dict = {}
+            for smi in smiles_list:
+                r = molbloom.buy(smi, canonicalize=True, catalog="surechembl")
+                if r:
+                    output_dict[smi] = "Patented"
+                else:
+                    output_dict[smi] = "Novel"
+            return str(output_dict)
         except:
             return "Invalid SMILES string"
-        if r:
-            return "Patented"
-        else:
-            return "Novel"
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
@@ -359,7 +327,10 @@ class ControlChemCheck(BaseTool):
                 )
             else:
                 # Get smiles of CAS number
-                smi = query2smiles(query)
+                try:
+                    smi = query2smiles(query)
+                except ValueError as e:
+                    return str(e)
                 # Check similarity to known controlled chemicals
                 return self.similar_control_chem_check._run(smi)
 
@@ -386,7 +357,10 @@ class Query2SMILES(BaseTool):
     def _run(self, query: str) -> str:
         """This function queries the given molecule name and returns a SMILES string from the record"""
         """Useful to get the SMILES string of one molecule by searching the name of a molecule. Only query with one specific name."""
-        smi = query2smiles(query, self.url)
+        try:
+            smi = query2smiles(query, self.url)
+        except ValueError as e:
+            return str(e)
         # check if smiles is controlled
         msg = "Note: " + self.ControlChemCheck._run(smi)
         if "high similarity" in msg or "appears" in msg:
@@ -422,9 +396,15 @@ class Query2CAS(BaseTool):
             smiles = None
             if is_smiles(query):
                 smiles = query
-            cas = query2cas(query, self.url_cid, self.url_data)
+            try:
+                cas = query2cas(query, self.url_cid, self.url_data)
+            except ValueError as e:
+                return str(e)
             if smiles is None:
-                smiles = query2smiles(query, None)
+                try:
+                    smiles = query2smiles(cas, None)
+                except ValueError as e:
+                    return str(e)
             # great now check if smiles is controlled
             msg = self.ControlChemCheck._run(smiles)
             if "high similarity" in msg or "appears" in msg:

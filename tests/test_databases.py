@@ -1,7 +1,9 @@
+import ast
+
 import pytest
 
 from chemcrow.tools.safety import PatentCheck, Query2CAS, Query2SMILES
-from chemcrow.utils import canonical_smiles
+from chemcrow.utils import canonical_smiles, split_smiles
 
 
 @pytest.fixture
@@ -40,9 +42,6 @@ def choline():
     return "CCCCCCCCC[NH+]1C[C@@H]([C@H]([C@@H]([C@H]1CO)O)O)O"
 
 
-# Query2SMILES
-
-
 def test_q2s_iupac(single_iupac):
     tool = Query2SMILES()
     out = tool._run(single_iupac)
@@ -59,8 +58,6 @@ def test_q2s_fail(molset1):
     tool = Query2SMILES()
     out = tool._run(molset1)
     assert out.endswith("input one molecule at a time.")
-
-# Query2CAS
 
 
 def test_q2cas_iupac(single_iupac):
@@ -81,13 +78,22 @@ def test_q2cas_badinp():
     assert out.endswith("no Pubchem entry") or out.endswith("not found")
 
 
-# PatentCheck
-
-
 def test_patentcheck(singlemol):
     tool = PatentCheck()
     patented = tool._run(singlemol)
-    assert patented == "Patented"
+    patented = ast.literal_eval(patented)
+    assert len(patented) == 1
+    assert patented[singlemol] == "Patented"
+
+
+def test_patentcheck_molset(molset1):
+    tool = PatentCheck()
+    patented = tool._run(molset1)
+    patented = ast.literal_eval(patented)
+    mols = split_smiles(molset1)
+    assert len(patented) == len(mols)
+    assert patented[mols[0]] == "Patented"
+    assert patented[mols[1]] == "Novel"
 
 
 def test_patentcheck_iupac(single_iupac):
@@ -99,4 +105,6 @@ def test_patentcheck_iupac(single_iupac):
 def test_patentcheck_not(choline):
     tool = PatentCheck()
     patented = tool._run(choline)
-    assert patented == "Novel"
+    patented = ast.literal_eval(patented)
+    assert len(patented) == 1
+    assert patented[choline] == "Novel"
