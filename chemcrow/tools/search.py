@@ -1,15 +1,13 @@
 import os
 import re
-import os
 
-import paperscraper
 import langchain
 import paperqa
+import paperscraper
 from langchain import SerpAPIWrapper
 from langchain.base_language import BaseLanguageModel
 from langchain.tools import BaseTool
 from pypdf.errors import PdfReadError
-
 
 
 def paper_scraper(search: str, pdir: str = "query") -> dict:
@@ -76,6 +74,7 @@ class Scholar2ResultLLM(BaseTool):
     async def _arun(self, query) -> str:
         """Use the tool asynchronously."""
         raise NotImplementedError("this tool does not support async")
+
 
 def web_search(keywords, search_engine="google"):
     try:
