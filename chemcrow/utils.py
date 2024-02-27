@@ -1,5 +1,6 @@
 import re
 
+import requests
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 
@@ -12,6 +13,16 @@ def is_smiles(text):
         return True
     except:
         return False
+
+
+def is_multiple_smiles(text):
+    if is_smiles(text):
+        return "." in text
+    return False
+
+
+def split_smiles(text):
+    return text.split(".")
 
 
 def is_cas(text):
@@ -46,3 +57,59 @@ def tanimoto(s1, s2):
         return DataStructs.TanimotoSimilarity(fp1, fp2)
     except (TypeError, ValueError, AttributeError):
         return "Error: Not a valid SMILES string"
+
+
+def query2smiles(
+    query: str,
+    url: str = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}",
+) -> str:
+    if is_smiles(query):
+        if not is_multiple_smiles(query):
+            return query
+        else:
+            raise ValueError(
+                "Multiple SMILES strings detected, input one molecule at a time."
+            )
+    if url is None:
+        url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}"
+    r = requests.get(url.format(query, "property/IsomericSMILES/JSON"))
+    # convert the response to a json object
+    data = r.json()
+    # return the SMILES string
+    try:
+        smi = data["PropertyTable"]["Properties"][0]["IsomericSMILES"]
+    except KeyError:
+        return "Could not find a molecule matching the text. One possible cause is that the input is incorrect, input one molecule at a time."
+    return str(Chem.CanonSmiles(largest_mol(smi)))
+
+
+def query2cas(query: str, url_cid: str, url_data: str):
+    try:
+        mode = "name"
+        if is_smiles(query):
+            if is_multiple_smiles(query):
+                raise ValueError(
+                    "Multiple SMILES strings detected, input one molecule at a time."
+                )
+            mode = "smiles"
+        url_cid = url_cid.format(mode, query)
+        cid = requests.get(url_cid).json()["IdentifierList"]["CID"][0]
+        url_data = url_data.format(cid)
+        data = requests.get(url_data).json()
+    except (requests.exceptions.RequestException, KeyError):
+        raise ValueError("Invalid molecule input, no Pubchem entry")
+
+    try:
+        for section in data["Record"]["Section"]:
+            if section.get("TOCHeading") == "Names and Identifiers":
+                for subsection in section["Section"]:
+                    if subsection.get("TOCHeading") == "Other Identifiers":
+                        for subsubsection in subsection["Section"]:
+                            if subsubsection.get("TOCHeading") == "CAS":
+                                return subsubsection["Information"][0]["Value"][
+                                    "StringWithMarkup"
+                                ][0]["String"]
+    except KeyError:
+        raise ValueError("Invalid molecule input, no Pubchem entry")
+
+    raise ValueError("CAS number not found")
