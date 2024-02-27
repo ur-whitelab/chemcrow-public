@@ -1,3 +1,5 @@
+import re
+
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 
@@ -10,6 +12,11 @@ def is_smiles(text):
         return True
     except:
         return False
+
+
+def is_cas(text):
+    pattern = r"^\d{2,7}-\d{2}-\d$"
+    return re.match(pattern, text) is not None
 
 
 def largest_mol(smiles):

@@ -1,3 +1,4 @@
+import re
 import urllib
 from time import sleep
 
@@ -13,7 +14,7 @@ from langchain.tools import BaseTool
 from rdkit import Chem
 
 from chemcrow.utils import *
-from chemcrow.utils import is_smiles, tanimoto
+from chemcrow.utils import is_cas, is_smiles, tanimoto
 
 from .prompts import safety_summary_prompt, summary_each_data
 
@@ -305,7 +306,7 @@ class SimilarControlChemCheck(BaseTool):
     description = "Input SMILES, returns similarity to controlled chemicals."
 
     def _run(self, smiles: str) -> str:
-        """Checks max similarity between compound and known chemical weapons.
+        """Checks max similarity between compound and controlled chemicals.
         Input SMILES string."""
 
         data_path = pkg_resources.resource_filename("chemcrow", "data/chem_wep_smi.csv")
@@ -344,32 +345,40 @@ class ControlChemCheck(BaseTool):
     description = "Input CAS number, True if molecule is a controlled chemical."
     similar_control_chem_check = SimilarControlChemCheck()
 
-    def _run(self, cas_number: str) -> str:
-        """Checks if compound is known chemical weapon. Input CAS number."""
-
+    def _run(self, query: str) -> str:
+        """Checks if compound is known controlled chemical. Input CAS number."""
         data_path = pkg_resources.resource_filename("chemcrow", "data/chem_wep_smi.csv")
         cw_df = pd.read_csv(data_path)
 
         try:
-            if is_smiles(cas_number):
-                return self.similar_control_chem_check._run(cas_number)
-
-            found = cw_df.apply(
-                lambda row: row.astype(str).str.contains(cas_number).any(), axis=1
-            ).any()
+            if is_smiles(query):
+                query_esc = re.escape(query)
+                found = (
+                    cw_df["smiles"]
+                    .astype(str)
+                    .str.contains(f"^{query_esc}$", regex=True)
+                    .any()
+                )
+            else:
+                found = (
+                    cw_df["cas"]
+                    .astype(str)
+                    .str.contains(f"^\({query}\)$", regex=True)
+                    .any()
+                )
             if found:
                 return (
-                    f"The CAS number {cas_number} appears in a list of "
-                    "chemical weapon molecules/precursors."
+                    f"The CAS number {query} appears in a list of "
+                    "controlled chemicals."
                 )
             else:
                 # Get smiles of CAS number
-                smi = query2smiles._run(cas_number)
-                # Check similarity to known chemical weapons
+                smi = query2smiles(query)
+                # Check similarity to known controlled chemicals
                 return self.similar_control_chem_check._run(smi)
 
-        except Exception:
-            return "Tool error."
+        except Exception as e:
+            return f"Error: {e}"
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
