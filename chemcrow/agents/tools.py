@@ -29,6 +29,7 @@ def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, verbose=True):
         FuncGroups(),
         ExplosiveCheck(),
         ControlChemCheck(),
+        Scholar2ResultLLM(llm=llm),
         SafetySummary(llm=llm),
         # LitSearch(llm=llm, verbose=verbose),
     ]
