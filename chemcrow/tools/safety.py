@@ -14,7 +14,7 @@ from langchain.tools import BaseTool
 from rdkit import Chem
 
 from chemcrow.utils import *
-from chemcrow.utils import is_cas, is_smiles, tanimoto
+from chemcrow.utils import is_smiles, tanimoto
 
 from .prompts import safety_summary_prompt, summary_each_data
 
@@ -224,19 +224,6 @@ class MoleculeSafety:
                 )
         return llm_output
 
-    def safety_summary(self, cas):
-        if is_smiles(cas):
-            return "Please input a valid CAS number."
-        data = self._fetch_pubchem_data(cas)
-        if isinstance(data, str):
-            return "Molecule not found in Pubchem."
-
-        data = self.get_safety_summary(cas)
-
-        prompt = PromptTemplate(template=prompt_template, input_variables=["data"])
-        llm_chain = LLMChain(prompt=safety_summary_prompt, llm=self.llm)
-        return llm_chain.run(" ".join(data))
-
 
 class SafetySummary(BaseTool):
     name = "SafetySummary"
@@ -295,7 +282,7 @@ class ExplosiveCheck(BaseTool):
         if "Explos" in str(cls) or "explos" in str(cls):
             return "Molecule is explosive"
         else:
-            return "Molecule is not known to be explosive."
+            return "Molecule is not known to be explosive"
 
     async def _arun(self, cas_number):
         raise NotImplementedError("Async not implemented.")
@@ -346,10 +333,9 @@ class ControlChemCheck(BaseTool):
     similar_control_chem_check = SimilarControlChemCheck()
 
     def _run(self, query: str) -> str:
-        """Checks if compound is known controlled chemical. Input CAS number."""
+        """Checks if compound is a controlled chemical. Input CAS number."""
         data_path = pkg_resources.resource_filename("chemcrow", "data/chem_wep_smi.csv")
         cw_df = pd.read_csv(data_path)
-
         try:
             if is_smiles(query):
                 query_esc = re.escape(query)
@@ -368,7 +354,7 @@ class ControlChemCheck(BaseTool):
                 )
             if found:
                 return (
-                    f"The CAS number {query} appears in a list of "
+                    f"The molecule {query} appears in a list of "
                     "controlled chemicals."
                 )
             else:

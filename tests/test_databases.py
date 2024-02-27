@@ -60,7 +60,6 @@ def test_q2s_fail(molset1):
     out = tool._run(molset1)
     assert out.endswith("input one molecule at a time.")
 
-
 # Query2CAS
 
 
