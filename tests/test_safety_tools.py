@@ -52,6 +52,7 @@ def test_controlchemcheck_cas(inp, expect):
     else:
         assert f"has a low similarity" in ans
 
+
 @pytest.mark.skip(reason="This requires an api call")
 def test_safety_summary():
     llm = ChatOpenAI()
@@ -66,9 +67,21 @@ def test_safety_summary():
     assert "environment" in ans.lower()
     assert "societal" in ans.lower()
 
-def test_explosive_check_exp():
-    explosive = ExplosiveCheck()
+
+@pytest.fixture
+def explosive():
+    return ExplosiveCheck()
+
+
+def test_explosive_check_exp(explosive):
     tnt_cas = "118-96-7"
     ans = explosive(tnt_cas)
     assert "Error" not in ans
     assert ans == "Molecule is explosive"
+
+
+def test_explosive_check_nonexp(explosive):
+    non_exp_cas = "10025-87-3"
+    ans = explosive(non_exp_cas)
+    assert "Error" not in ans
+    assert ans == "Molecule is not known to be explosive"

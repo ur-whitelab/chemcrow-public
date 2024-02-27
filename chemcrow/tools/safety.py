@@ -228,7 +228,7 @@ class ExplosiveCheck(BaseTool):
         if "Explos" in str(cls) or "explos" in str(cls):
             return "Molecule is explosive"
         else:
-            return "Molecule is not known to be explosive."
+            return "Molecule is not known to be explosive"
 
     async def _arun(self, cas_number):
         raise NotImplementedError("Async not implemented.")
