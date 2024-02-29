@@ -57,6 +57,23 @@ chem_model = ChemCrow(model="gpt-4-0613", temp=0.1, streaming=False)
 chem_model.run("What is the molecular weight of tylenol?")
 ```
 
+### 💻 Running on a local machine
+
+You can also use the program by loading a LlamaCpp (.gguf) or GPT4ALL (.bin) model as the LLM instead of using the OpenAI API.
+
+```python
+from chemcrow.agents import ChemCrow
+
+chem_model = ChemCrow(model="./models/llama-2-7b.Q8_0.gguf", 
+                      tools_model="./models/llama-2-7b.Q8_0.gguf", 
+                      temp=0.1, verbose=False, max_tokens=100, n_ctx=2048)
+output = chem_model.run("What is the molecular weight of tylenol?")
+
+>>> output
+>>> The molecular weight of acetaminophen is 151.17 g/mol ...
+
+```
+
 ## ✅ Citation
 Bran, Andres M., et al. "ChemCrow: Augmenting large-language models with chemistry tools." arXiv preprint arXiv:2304.05376 (2023).
 
