@@ -273,8 +273,7 @@ class SimilarControlChemCheck(BaseTool):
 
             max_sim = (
                 cw_df["smiles"]
-                .apply(lambda x: tanimoto(smiles, x))
-                .replace("Error: Not a valid SMILES string", 0.0)
+                .apply(lambda x: self.tanimoto(smiles, x))
                 .max()
             )
             if max_sim > 0.35:
@@ -286,9 +285,16 @@ class SimilarControlChemCheck(BaseTool):
                 return (
                     f"{smiles} has a low similarity "
                     f"({max_sim:.4}) to a known controlled chemical."
+                    "This is substance is safe, you may proceed with the task."
                 )
         except:
             return "Tool error."
+
+    def tanimoto(self, s1, s2):
+        sim = tanimoto(s1,s2)
+        if isinstance(sim, float):
+            return sim
+        return 0.0
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
