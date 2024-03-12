@@ -24,8 +24,6 @@ from chemcrow.frontend.utils import cdk
 load_dotenv()
 ss = st.session_state
 
-# tools = ChemTools().all_tools
-
 
 agent = ChemCrow(
     # tools,
@@ -34,10 +32,11 @@ agent = ChemCrow(
 ).agent_executor
 
 
-# tool_list = pd.Series(
-#    {f"✅ {t.name}":t.description for t in tools}
-# ).reset_index()
-# tool_list.columns = ['Tool', 'Description']
+tools = agent.tools
+tool_list = pd.Series(
+    {f"✅ {t.name}":t.description for t in tools}
+ ).reset_index()
+tool_list.columns = ['Tool', 'Description']
 
 
 icon = Image.open("assets/logo0.png")
@@ -58,9 +57,13 @@ st.markdown(
 
 # Session state
 # st.session_state['molecule'] = "CCO"
-def on_api_key_change():
-    api_key = ss.get("api_key") or os.getenv("OPENAI_API_KEY")
+def oai_api_key_change():
+    api_key = ss.get("openai_api_key") or os.getenv("OPENAI_API_KEY")
     os.environ["OPENAI_API_KEY"] = api_key
+
+def cs_api_key_change():
+    api_key = ss.get("chemspace_api_key") or os.getenv("CHEMSPACE_API_KEY")
+    os.environ["CHEMSPACE_API_KEY"] = api_key
 
 
 # sidebar
@@ -73,20 +76,29 @@ with st.sidebar:
     st.text_input(
         "OpenAI API key",
         type="password",
-        key="api_key",
-        on_change=on_api_key_change,
+        key="openai_api_key",
+        on_change=oai_api_key_change,
+        label_visibility="collapsed",
+    )
+    # Input ChemSpace API key
+    st.markdown("Input your Chemspace API key.")
+    st.text_input(
+        "Chemspace API key",
+        type="password",
+        key="chemspace_api_key",
+        on_change=cs_api_key_change,
         label_visibility="collapsed",
     )
 
     # Display available tools
-    # st.markdown(f"# Available tools: {len(tools)}")
-    # st.dataframe(
-    #    tool_list,
-    #    use_container_width=True,
-    #    hide_index=True,
-    #    height=300
+    st.markdown(f"# Available tools: {len(tools)}")
+    st.dataframe(
+        tool_list,
+        use_container_width=True,
+        hide_index=True,
+        height=300
 
-    # )
+     )
 
 
 print(st.session_state)

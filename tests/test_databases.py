@@ -1,8 +1,8 @@
 import ast
-
 import pytest
 
-from chemcrow.tools.safety import PatentCheck, Query2CAS, Query2SMILES
+from chemcrow.tools.safety import PatentCheck, Query2CAS
+from chemcrow.tools.chemspace import Query2SMILES
 from chemcrow.utils import canonical_smiles, split_smiles
 
 

@@ -17,7 +17,7 @@ from chemcrow.utils import (
     is_multiple_smiles,
     is_smiles,
     query2cas,
-    query2smiles,
+    pubchem_query2smiles,
     split_smiles,
     tanimoto,
 )
@@ -334,7 +334,7 @@ class ControlChemCheck(BaseTool):
             else:
                 # Get smiles of CAS number
                 try:
-                    smi = query2smiles(query)
+                    smi = pubchem_query2smiles(query)
                 except ValueError as e:
                     return str(e)
                 # Check similarity to known controlled chemicals
@@ -342,36 +342,6 @@ class ControlChemCheck(BaseTool):
 
         except Exception as e:
             return f"Error: {e}"
-
-    async def _arun(self, query: str) -> str:
-        """Use the tool asynchronously."""
-        raise NotImplementedError()
-
-
-class Query2SMILES(BaseTool):
-    name = "Name2SMILES"
-    description = "Input a molecule name, returns SMILES."
-    url: str = None
-    ControlChemCheck = ControlChemCheck()
-
-    def __init__(
-        self,
-    ):
-        super().__init__()
-        self.url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}"
-
-    def _run(self, query: str) -> str:
-        """This function queries the given molecule name and returns a SMILES string from the record"""
-        """Useful to get the SMILES string of one molecule by searching the name of a molecule. Only query with one specific name."""
-        try:
-            smi = query2smiles(query, self.url)
-        except ValueError as e:
-            return str(e)
-        # check if smiles is controlled
-        msg = "Note: " + self.ControlChemCheck._run(smi)
-        if "high similarity" in msg or "appears" in msg:
-            return f"CAS number {smi}found, but " + msg
-        return smi
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
@@ -408,7 +378,7 @@ class Query2CAS(BaseTool):
                 return str(e)
             if smiles is None:
                 try:
-                    smiles = query2smiles(cas, None)
+                    smiles = pubchem_query2smiles(cas, None)
                 except ValueError as e:
                     return str(e)
             # great now check if smiles is controlled

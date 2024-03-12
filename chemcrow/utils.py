@@ -59,7 +59,7 @@ def tanimoto(s1, s2):
         return "Error: Not a valid SMILES string"
 
 
-def query2smiles(
+def pubchem_query2smiles(
     query: str,
     url: str = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}",
 ) -> str:

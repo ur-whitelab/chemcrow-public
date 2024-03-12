@@ -10,6 +10,7 @@ def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, verbose=True):
     serp_key = api_keys.get("SERP_API_KEY") or os.getenv("SERP_API_KEY")
     rxn4chem_api_key = api_keys.get("RXN4CHEM_API_KEY") or os.getenv("RXN4CHEM_API_KEY")
     openai_api_key = api_keys.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+    chemspace_api_key = api_keys.get("CHEMSPACE_API_KEY") or os.getenv("CHEMSPACE_API_KEY")
 
     all_tools = agents.load_tools(
         [
@@ -21,7 +22,7 @@ def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, verbose=True):
     )
 
     all_tools += [
-        Query2SMILES(),
+        Query2SMILES(chemspace_api_key),
         Query2CAS(),
         PatentCheck(),
         MolSimilarity(),
