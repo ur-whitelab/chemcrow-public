@@ -113,3 +113,34 @@ def query2cas(query: str, url_cid: str, url_data: str):
         raise ValueError("Invalid molecule input, no Pubchem entry")
 
     raise ValueError("CAS number not found")
+
+
+def smiles2name(smi, single_name=True):
+    """This function queries the given molecule smiles and returns a name record or iupac"""
+
+    try:
+        smi = Chem.MolToSmiles(Chem.MolFromSmiles(smi), canonical=True)
+    except Exception:
+        raise ValueError("Invalid SMILES string")
+    # query the PubChem database
+    r = requests.get(
+        "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/"
+        + smi
+        + "/synonyms/JSON"
+    )
+    # convert the response to a json object
+    data = r.json()
+    # return the SMILES string
+    try:
+        if single_name:
+            index = 0
+            names = data["InformationList"]["Information"][0]["Synonym"]
+            while is_cas(name := names[index]):
+                index += 1
+                if index == len(names):
+                    raise ValueError("No name found")
+        else:
+            name = data["InformationList"]["Information"][0]["Synonym"]
+    except KeyError:
+        raise ValueError("Unknown Molecule")
+    return name

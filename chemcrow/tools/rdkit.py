@@ -1,6 +1,6 @@
 from langchain.tools import BaseTool
-from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem, rdMolDescriptors
+from rdkit import Chem
+from rdkit.Chem import rdMolDescriptors
 
 from chemcrow.utils import *
 

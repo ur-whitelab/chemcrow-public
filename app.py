@@ -4,22 +4,10 @@ import pandas as pd
 import requests
 import streamlit as st
 from dotenv import load_dotenv
-from IPython.core.display import HTML
-from langchain.agents import AgentType, initialize_agent, load_tools
-from langchain.callbacks import StreamlitCallbackHandler
-from langchain.chat_models import ChatOpenAI
 from PIL import Image
-from rmrkl import ChatZeroShotAgent, RetryAgentExecutor
 
 from chemcrow.agents import ChemCrow
-
-# from chemcrow
-from chemcrow.agents.prompts import FORMAT_INSTRUCTIONS, QUESTION_PROMPT, SUFFIX
 from chemcrow.frontend.streamlit_callback_handler import StreamlitCallbackHandlerChem
-from chemcrow.frontend.utils import cdk
-
-# from chemcrow.mol_utils.generals import is_smiles
-
 
 load_dotenv()
 ss = st.session_state
@@ -33,10 +21,8 @@ agent = ChemCrow(
 
 
 tools = agent.tools
-tool_list = pd.Series(
-    {f"✅ {t.name}":t.description for t in tools}
- ).reset_index()
-tool_list.columns = ['Tool', 'Description']
+tool_list = pd.Series({f"✅ {t.name}": t.description for t in tools}).reset_index()
+tool_list.columns = ["Tool", "Description"]
 
 
 icon = Image.open("assets/logo0.png")
@@ -55,11 +41,10 @@ st.markdown(
 )
 
 
-# Session state
-# st.session_state['molecule'] = "CCO"
 def oai_api_key_change():
     api_key = ss.get("openai_api_key") or os.getenv("OPENAI_API_KEY")
     os.environ["OPENAI_API_KEY"] = api_key
+
 
 def cs_api_key_change():
     api_key = ss.get("chemspace_api_key") or os.getenv("CHEMSPACE_API_KEY")
@@ -81,7 +66,7 @@ with st.sidebar:
         label_visibility="collapsed",
     )
     # Input ChemSpace API key
-    st.markdown("Input your Chemspace API key.")
+    st.markdown("Input your Chemspace API key (optional-used for molecule price).")
     st.text_input(
         "Chemspace API key",
         type="password",
@@ -92,16 +77,9 @@ with st.sidebar:
 
     # Display available tools
     st.markdown(f"# Available tools: {len(tools)}")
-    st.dataframe(
-        tool_list,
-        use_container_width=True,
-        hide_index=True,
-        height=300
-
-     )
+    st.dataframe(tool_list, use_container_width=True, hide_index=True, height=300)
 
 
-print(st.session_state)
 # Agent execution
 if prompt := st.chat_input():
     st.chat_message("user").write(prompt)

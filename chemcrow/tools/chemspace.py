@@ -1,16 +1,16 @@
-import requests
-import pandas as pd
-import molbloom
 import os
+
+import molbloom
+import pandas as pd
+import requests
 from langchain.tools import BaseTool
 
-from chemcrow.utils import is_smiles, pubchem_query2smiles
-from chemcrow.tools.safety import ControlChemCheck
+from chemcrow.utils import is_smiles
+
 
 class ChemSpace:
-    def __init__(self, chemspace_key=None):
-        self.chemspace_api_key = chemspace_key
-        self._set_chemspace_api_key()
+    def __init__(self, chemspace_api_key=None):
+        self.chemspace_api_key = chemspace_api_key
         self._renew_token()  # Create token
 
     def _renew_token(self):
@@ -21,19 +21,6 @@ class ChemSpace:
                 "Authorization": f"Bearer {self.chemspace_api_key}",
             },
         ).json()["access_token"]
-
-    def _set_chemspace_api_key(self)->None:
-        if not self.chemspace_api_key:
-            # see if there is an api key in os.getenv("CHEMSPACE_API_KEY") boolean
-            api_key = os.getenv("CHEMSPACE_API_KEY")
-            if not api_key:
-                raise ValueError(
-                    "No ChemSpace API key found. Please set it in the environment variable 'CHEMSPACE_API_KEY'."
-                )
-        else: 
-            os.environ["CHEMSPACE_API_KEY"] = self.chemspace_api_key
-        return None
-
 
     def _make_api_request(
         self,
@@ -75,30 +62,25 @@ class ChemSpace:
         data = _do_request()
         return data
 
-    def query2smiles(self, query):
-        """
-        Get smiles string for some molecule.
-        Input can be common name, iupac, etc.
-        Also handles query with multiple molecules separated by ", "
-        """
+    def _convert_single(self, query, search_type: str):
+        """Do query for a single molecule"""
+        data = self._make_api_request(query, "exact", 1, "CSCS,CSMB,CSSB")
+        if data["count"] > 0:
+            return data["items"][0][search_type]
+        else:
+            return "No data was found for this compound."
 
-        def _q2s_single(query):
-            """Do query for a single molecule"""
-            data = self._make_api_request(query, "exact", 1, "CSCS,CSMB,CSSB")
-            if data["count"] > 0:
-                return data["items"][0]["smiles"]
-            else:
-                return "No data was found for this compound."
-
+    def convert_mol_rep(self, query, search_type: str = "smiles"):
         if ", " in query:
             query_list = query.split(", ")
         else:
             query_list = [query]
-
+        smi = ""
         try:
-            smi_list = list(map(_q2s_single, query_list))
-            return ".".join(smi_list)
-        except:
+            for q in query_list:
+                smi += f"{query}'s {search_type} is: {str(self._convert_single(q, search_type))}"
+                return smi
+        except Exception:
             return "The input provided is wrong. Input either a single molecule, or multiple molecules separated by a ', '"
 
     def buy_mol(
@@ -117,9 +99,12 @@ class ChemSpace:
 
         def purchasable_check(
             s,
-        ):  
+        ):
             if not is_smiles(s):
-                s = self.query2smiles(s)
+                try:
+                    s = self.convert_mol_rep(s, "smiles")
+                except:
+                    return "Invalid SMILES string."
 
             """Checks if molecule is available for purchase (ZINC20)"""
             try:
@@ -178,43 +163,32 @@ class ChemSpace:
 
         df = df.drop(columns=["pack", "uom"])
         # Remove all entries that are not numbers
-        df = df[df['priceUsd'].astype(str).str.isnumeric()]
+        df = df[df["priceUsd"].astype(str).str.isnumeric()]
 
         cheapest = df.iloc[df["priceUsd"].astype(float).idxmin()]
         return f"{cheapest['quantity']} of this molecule cost {cheapest['priceUsd']} USD and can be purchased at {cheapest['vendorName']}."
-    
 
-class Query2SMILES(BaseTool):
-    name = "Name2SMILES"
-    description = "Input a molecule name, returns SMILES."
-    url: str = None
+
+class GetMoleculePrice(BaseTool):
+    name = "GetMoleculePrice"
+    description = "Get the cheapest available price of a molecule."
     chemspace_api_key: str = None
-    ControlChemCheck = ControlChemCheck()
+    url: str = None
 
-    def __init__(
-        self, chemspace_api_key: str = None
-    ):
+    def __init__(self, chemspace_api_key: str = None):
         super().__init__()
         self.chemspace_api_key = chemspace_api_key
         self.url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}"
 
     def _run(self, query: str) -> str:
-        """This function queries the given molecule name and returns a SMILES string from the record"""
-        """Useful to get the SMILES string of one molecule by searching the name of a molecule. Only query with one specific name."""
-        #first see if api key is set
+        if not self.chemspace_api_key:
+            return "No Chemspace API key found. This tool may not be used without a Chemspace API key."
         try:
             chemspace = ChemSpace(self.chemspace_api_key)
-            smi = chemspace.query2smiles(query)
+            price = chemspace.buy_mol(query)
+            return price
         except Exception as e:
-            try:
-                smi = pubchem_query2smiles(query, self.url)
-            except ValueError as e:
-                return str(e)
-        # check if smiles is controlled
-        msg = "Note: " + self.ControlChemCheck._run(smi)
-        if "high similarity" in msg or "appears" in msg:
-            return f"CAS number {smi}found, but " + msg
-        return smi
+            return str(e)
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
