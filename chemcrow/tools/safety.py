@@ -12,44 +12,9 @@ from langchain import LLMChain, PromptTemplate
 from langchain.llms import BaseLLM
 from langchain.tools import BaseTool
 
-from chemcrow.utils import *
-from chemcrow.utils import (
-    is_multiple_smiles,
-    is_smiles,
-    query2cas,
-    query2smiles,
-    split_smiles,
-    tanimoto,
-)
+from chemcrow.utils import is_smiles, pubchem_query2smiles, tanimoto
 
 from .prompts import safety_summary_prompt, summary_each_data
-
-
-class PatentCheck(BaseTool):
-    name = "PatentCheck"
-    description = "Input SMILES, returns if molecule is patented. You may also input several SMILES, separated by a period."
-
-    def _run(self, smiles: str) -> str:
-        """Checks if compound is patented. Give this tool only one SMILES string"""
-        if is_multiple_smiles(smiles):
-            smiles_list = split_smiles(smiles)
-        else:
-            smiles_list = [smiles]
-        try:
-            output_dict = {}
-            for smi in smiles_list:
-                r = molbloom.buy(smi, canonicalize=True, catalog="surechembl")
-                if r:
-                    output_dict[smi] = "Patented"
-                else:
-                    output_dict[smi] = "Novel"
-            return str(output_dict)
-        except:
-            return "Invalid SMILES string"
-
-    async def _arun(self, query: str) -> str:
-        """Use the tool asynchronously."""
-        raise NotImplementedError()
 
 
 class MoleculeSafety:
@@ -271,11 +236,7 @@ class SimilarControlChemCheck(BaseTool):
             if not is_smiles(smiles):
                 return "Please input a valid SMILES string."
 
-            max_sim = (
-                cw_df["smiles"]
-                .apply(lambda x: self.tanimoto(smiles, x))
-                .max()
-            )
+            max_sim = cw_df["smiles"].apply(lambda x: self.tanimoto(smiles, x)).max()
             if max_sim > 0.35:
                 return (
                     f"{smiles} has a high similarity "
@@ -284,14 +245,14 @@ class SimilarControlChemCheck(BaseTool):
             else:
                 return (
                     f"{smiles} has a low similarity "
-                    f"({max_sim:.4}) to a known controlled chemical."
+                    f"({max_sim:.4}) to a known controlled chemical. "
                     "This is substance is safe, you may proceed with the task."
                 )
         except:
             return "Tool error."
 
     def tanimoto(self, s1, s2):
-        sim = tanimoto(s1,s2)
+        sim = tanimoto(s1, s2)
         if isinstance(sim, float):
             return sim
         return 0.0
@@ -334,7 +295,7 @@ class ControlChemCheck(BaseTool):
             else:
                 # Get smiles of CAS number
                 try:
-                    smi = query2smiles(query)
+                    smi = pubchem_query2smiles(query)
                 except ValueError as e:
                     return str(e)
                 # Check similarity to known controlled chemicals
@@ -342,83 +303,6 @@ class ControlChemCheck(BaseTool):
 
         except Exception as e:
             return f"Error: {e}"
-
-    async def _arun(self, query: str) -> str:
-        """Use the tool asynchronously."""
-        raise NotImplementedError()
-
-
-class Query2SMILES(BaseTool):
-    name = "Name2SMILES"
-    description = "Input a molecule name, returns SMILES."
-    url: str = None
-    ControlChemCheck = ControlChemCheck()
-
-    def __init__(
-        self,
-    ):
-        super().__init__()
-        self.url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/{}"
-
-    def _run(self, query: str) -> str:
-        """This function queries the given molecule name and returns a SMILES string from the record"""
-        """Useful to get the SMILES string of one molecule by searching the name of a molecule. Only query with one specific name."""
-        try:
-            smi = query2smiles(query, self.url)
-        except ValueError as e:
-            return str(e)
-        # check if smiles is controlled
-        msg = "Note: " + self.ControlChemCheck._run(smi)
-        if "high similarity" in msg or "appears" in msg:
-            return f"CAS number {smi}found, but " + msg
-        return smi
-
-    async def _arun(self, query: str) -> str:
-        """Use the tool asynchronously."""
-        raise NotImplementedError()
-
-
-class Query2CAS(BaseTool):
-    name = "Mol2CAS"
-    description = "Input molecule (name or SMILES), returns CAS number."
-    url_cid: str = None
-    url_data: str = None
-    ControlChemCheck = ControlChemCheck()
-
-    def __init__(
-        self,
-    ):
-        super().__init__()
-        self.url_cid = (
-            "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/{}/{}/cids/JSON"
-        )
-        self.url_data = (
-            "https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/{}/JSON"
-        )
-
-    def _run(self, query: str) -> str:
-        try:
-            # if query is smiles
-            smiles = None
-            if is_smiles(query):
-                smiles = query
-            try:
-                cas = query2cas(query, self.url_cid, self.url_data)
-            except ValueError as e:
-                return str(e)
-            if smiles is None:
-                try:
-                    smiles = query2smiles(cas, None)
-                except ValueError as e:
-                    return str(e)
-            # great now check if smiles is controlled
-            msg = self.ControlChemCheck._run(smiles)
-            if "high similarity" in msg or "appears" in msg:
-                return f"CAS number {cas}found, but " + msg
-            return cas
-            # check if smiles is controlled
-        except ValueError:
-            return "CAS number not found"
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""

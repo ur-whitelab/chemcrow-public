@@ -2,12 +2,15 @@ import os
 import re
 
 import langchain
+import molbloom
 import paperqa
 import paperscraper
 from langchain import SerpAPIWrapper
 from langchain.base_language import BaseLanguageModel
 from langchain.tools import BaseTool
 from pypdf.errors import PdfReadError
+
+from chemcrow.utils import is_multiple_smiles, split_smiles
 
 
 def paper_scraper(search: str, pdir: str = "query") -> dict:
@@ -91,9 +94,45 @@ class WebSearch(BaseTool):
         "Input a specific question, returns an answer from web search. "
         "Do not mention any specific molecule names, but use more general features to formulate your questions."
     )
+    serp_api_key: str = None
+
+    def __init__(self, serp_api_key: str = None):
+        super().__init__()
+        self.serp_api_key = serp_api_key
 
     def _run(self, query: str) -> str:
+        if not self.serp_api_key:
+            return (
+                "No SerpAPI key found. This tool may not be used without a SerpAPI key."
+            )
         return web_search(query)
 
     async def _arun(self, query: str) -> str:
         raise NotImplementedError("Async not implemented")
+
+
+class PatentCheck(BaseTool):
+    name = "PatentCheck"
+    description = "Input SMILES, returns if molecule is patented. You may also input several SMILES, separated by a period."
+
+    def _run(self, smiles: str) -> str:
+        """Checks if compound is patented. Give this tool only one SMILES string"""
+        if is_multiple_smiles(smiles):
+            smiles_list = split_smiles(smiles)
+        else:
+            smiles_list = [smiles]
+        try:
+            output_dict = {}
+            for smi in smiles_list:
+                r = molbloom.buy(smi, canonicalize=True, catalog="surechembl")
+                if r:
+                    output_dict[smi] = "Patented"
+                else:
+                    output_dict[smi] = "Novel"
+            return str(output_dict)
+        except:
+            return "Invalid SMILES string"
+
+    async def _arun(self, query: str) -> str:
+        """Use the tool asynchronously."""
+        raise NotImplementedError()
