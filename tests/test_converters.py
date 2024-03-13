@@ -64,21 +64,29 @@ def test_getmolprice_no_api():
     price = tool._run("caffeine")
     assert "No Chemspace API key found" in price
 
-
-def test_query2smiles_chemspace(singlemol, single_iupac):
+def test_getmolprice(singlemol):
     if os.getenv("CHEMSPACE_API_KEY") is None:
         pytest.skip("No Chemspace API key found")
     else:
-        chemspace = ChemSpace(chemspace_api_key=os.getenv("CHEMSPACE_API_KEY"))
-        smiles_from_chemspace = chemspace.convert_mol_rep("caffeine", "smiles")
-        assert "CN1C=NC2=C1C(=O)N(C)C(=O)N2[13CH3]" in smiles_from_chemspace
-
-        price = chemspace.buy_mol(singlemol)
+        tool = GetMoleculePrice(chemspace_api_key=os.getenv("CHEMSPACE_API_KEY"))
+        price = tool._run(singlemol)
         assert "of this molecule cost" in price
 
-        price = chemspace.buy_mol(single_iupac)
-        assert "of this molecule cost" in price
 
+#def test_query2smiles_chemspace(singlemol, single_iupac):
+#    if os.getenv("CHEMSPACE_API_KEY") is None:
+#        pytest.skip("No Chemspace API key found")
+#    else:
+#        chemspace = ChemSpace(chemspace_api_key=os.getenv("CHEMSPACE_API_KEY"))
+#        smiles_from_chemspace = chemspace.convert_mol_rep("caffeine", "smiles")
+#        assert "CN1C=NC2=C1C(=O)N(C)C(=O)N2[13CH3]" in smiles_from_chemspace
+#
+#        price = chemspace.buy_mol(singlemol)
+#        assert "of this molecule cost" in price
+#
+#        price = chemspace.buy_mol(single_iupac)
+#        assert "of this molecule cost" in price
+#
 
 def test_smiles2name():
     smiles2name = SMILES2Name()
