@@ -8,6 +8,7 @@ import paperscraper
 from langchain import SerpAPIWrapper
 from langchain.base_language import BaseLanguageModel
 from langchain.tools import BaseTool
+from langchain.embeddings.openai import OpenAIEmbeddings
 from pypdf.errors import PdfReadError
 
 from chemcrow.utils import is_multiple_smiles, split_smiles
@@ -40,13 +41,17 @@ def paper_search(llm, query):
     return papers
 
 
-def scholar2result_llm(llm, query, k=5, max_sources=2):
+def scholar2result_llm(llm, query, k=5, max_sources=2, openai_api_key=None):
     """Useful to answer questions that require
     technical knowledge. Ask a specific question."""
     papers = paper_search(llm, query)
     if len(papers) == 0:
         return "Not enough papers found"
-    docs = paperqa.Docs(llm=llm)
+    docs = paperqa.Docs(
+        llm=llm,
+        summary_llm=llm,
+        embeddings=OpenAIEmbeddings(openai_api_key=openai_api_key),
+    )
     not_loaded = 0
     for path, data in papers.items():
         try:
@@ -66,13 +71,15 @@ class Scholar2ResultLLM(BaseTool):
         "knowledge. Ask a specific question."
     )
     llm: BaseLanguageModel = None
+    api_key: str = None
 
-    def __init__(self, llm):
+    def __init__(self, llm, api_key):
         super().__init__()
         self.llm = llm
+        self.api_key = api_key
 
     def _run(self, query) -> str:
-        return scholar2result_llm(self.llm, query)
+        return scholar2result_llm(self.llm, query, openai_api_key=self.api_key)
 
     async def _arun(self, query) -> str:
         """Use the tool asynchronously."""

@@ -34,7 +34,7 @@ def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, verbose=True):
         ExplosiveCheck(),
         ControlChemCheck(),
         SimilarControlChemCheck(),
-        Scholar2ResultLLM(llm=llm),
+        Scholar2ResultLLM(llm=llm, api_key=openai_api_key),
         SafetySummary(llm=llm),
     ]
     if chemspace_api_key:
