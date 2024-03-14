@@ -13,6 +13,9 @@ def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, verbose=True):
     chemspace_api_key = api_keys.get("CHEMSPACE_API_KEY") or os.getenv(
         "CHEMSPACE_API_KEY"
     )
+    semantic_scholar_api_key = api_keys.get("SEMANTIC_SCHOLAR_API_KEY") or os.getenv(
+        "SEMANTIC_SCHOLAR_API_KEY"
+    )
 
     all_tools = agents.load_tools(
         [
@@ -34,8 +37,12 @@ def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, verbose=True):
         ExplosiveCheck(),
         ControlChemCheck(),
         SimilarControlChemCheck(),
-        Scholar2ResultLLM(llm=llm, api_key=openai_api_key),
         SafetySummary(llm=llm),
+        Scholar2ResultLLM(
+            llm=llm,
+            openai_api_key=openai_api_key,
+            semantic_scholar_api_key=semantic_scholar_api_key
+        ),
     ]
     if chemspace_api_key:
         all_tools += [GetMoleculePrice(chemspace_api_key)]
