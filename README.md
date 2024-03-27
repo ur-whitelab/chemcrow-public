@@ -60,6 +60,46 @@ chem_model = ChemCrow(model="gpt-4-0613", temp=0.1, streaming=False)
 chem_model.run("What is the molecular weight of tylenol?")
 ```
 
+### 💻 Running using local LLMs.
+
+ChemCrow also supports the use of local LLMs, through either GPT4All, or HuggingFace's [TGI](https://huggingface.co/docs/text-generation-inference/index).
+
+#### GPT4All
+
+To run using GPT4All, you will need to download one of the [supported models](https://gpt4all.io/index.html).
+
+```python
+from chemcrow.agents import ChemCrow
+
+chem_model = ChemCrow(
+    model_type='gpt4all',
+    model="./models/mistral-7b-instruct-v0.1.Q4_0.gguf",
+    temp=0.1,
+    max_tokens=100,
+    verbose=False,
+)
+```
+
+#### TGI
+
+The other option is Text Generation Interface. This allows you to serve a model and run inference as an API.
+To deploy a model, you will need docker. Run it as explained [here](https://huggingface.co/docs/text-generation-inference/quicktour).
+
+```python
+from chemcrow.agents import ChemCrow
+
+agent = ChemCrow(
+    model_type='tgi',
+    model_server_url='http://server-ip-address:8080',
+    temp=0.3,
+    max_tokens=40,
+    max_iterations=3,
+).agent_executor
+```
+
+The advantage of TGI is improved efficiency, plus easy access to any model available in HuggingFace.
+
+
 ## ✅ Citation
 Bran, Andres M., et al. "ChemCrow: Augmenting large-language models with chemistry tools." arXiv preprint arXiv:2304.05376 (2023).
 
