@@ -1,6 +1,7 @@
 from langchain.tools import BaseTool
-from rdkit import Chem, DataStructs
-from rdkit.Chem import AllChem, rdMolDescriptors
+from rdkit import Chem
+from rdkit.Chem import rdMolDescriptors
+
 from chemcrow.utils import *
 
 
@@ -11,7 +12,7 @@ class MolSimilarity(BaseTool):
     )
 
     def __init__(self):
-        super(MolSimilarity, self).__init__()
+        super().__init__()
 
     def _run(self, smiles_pair: str) -> str:
         smi_list = smiles_pair.split(".")
@@ -54,7 +55,7 @@ class SMILES2Weight(BaseTool):
     def __init__(
         self,
     ):
-        super(SMILES2Weight, self).__init__()
+        super().__init__()
 
     def _run(self, smiles: str) -> str:
         mol = Chem.MolFromSmiles(smiles)
@@ -76,7 +77,7 @@ class FuncGroups(BaseTool):
     def __init__(
         self,
     ):
-        super(FuncGroups, self).__init__()
+        super().__init__()
 
         # List obtained from https://github.com/rdkit/rdkit/blob/master/Data/FunctionalGroups.txt
         self.dict_fgs = {

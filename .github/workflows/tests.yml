@@ -29,12 +29,13 @@ jobs:
     - name: Install
       run: |
         pip install .
+        pip install paper-scraper@git+https://github.com/blackadad/paper-scraper.git
     - name: Run Test
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
         RXN4CHEM_API_KEY: ${{ secrets.RXN4CHEM_API_KEY }}
         SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
-        CHEMSPACE_API_KEY: ${{ secrets.CHEMSPACE_KEY }}
+        CHEMSPACE_API_KEY: ${{ secrets.CHEMSPACE_API_KEY }}
       run: |
          pytest -m "not skip" tests

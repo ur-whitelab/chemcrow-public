@@ -79,9 +79,9 @@ class LLMThoughtChem(LLMThought):
         )
 
         # Display note of potential long time
-        if serialized["name"] == "ReactionRetrosynthesis":
+        if serialized["name"] == "ReactionRetrosynthesis" or serialized["name"] == "LiteratureSearch":
             self._container.markdown(
-                f"‼️ Note: This tool can take up to 5 minutes to complete execution ‼️",
+                f"‼️ Note: This tool can take some time to complete execution ‼️",
                 unsafe_allow_html=True,
             )
 

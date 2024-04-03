@@ -15,7 +15,7 @@ setup(
     url="https://github.com/ur-whitelab/chemcrow-public",
     license="MIT",
     packages=find_packages(),
-    package_data={'chemcrow': ['data/chem_wep_smi.csv']},
+    package_data={"chemcrow": ["data/chem_wep_smi.csv"]},
     install_requires=[
         "ipython",
         "python-dotenv",
@@ -30,7 +30,7 @@ setup(
         "nest_asyncio",
         "tiktoken",
         "rmrkl",
-        # "paper-scraper@git+https://github.com/blackadad/paper-scraper.git",
+        #"paper-scraper@git+https://github.com/blackadad/paper-scraper.git",
         "streamlit",
         "rxn4chemistry",
         "duckduckgo-search",

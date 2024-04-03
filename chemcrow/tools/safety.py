@@ -1,20 +1,20 @@
+import re
 import urllib
 from time import sleep
-import requests
+
+import langchain
+import molbloom
 import pandas as pd
 import pkg_resources
-import langchain
-import pandas as pd
 import requests
 import tiktoken
 from langchain import LLMChain, PromptTemplate
-from langchain.llms import BaseLLM, OpenAI
+from langchain.llms import BaseLLM
 from langchain.tools import BaseTool
 
-from chemcrow.tools import Query2SMILES
-from chemcrow.utils import is_smiles, tanimoto
+from chemcrow.utils import is_smiles, pubchem_query2smiles, tanimoto
+
 from .prompts import safety_summary_prompt, summary_each_data
-from .databases import Query2CAS, Query2SMILES
 
 
 class MoleculeSafety:
@@ -157,19 +157,6 @@ class MoleculeSafety:
                 )
         return llm_output
 
-    def safety_summary(self, cas):
-        if is_smiles(cas):
-            return "Please input a valid CAS number."
-        data = self._fetch_pubchem_data(cas)
-        if isinstance(data, str):
-            return "Molecule not found in Pubchem."
-
-        data = self.get_safety_summary(cas)
-
-        prompt = PromptTemplate(template=prompt_template, input_variables=["data"])
-        llm_chain = LLMChain(prompt=safety_summary_prompt, llm=self.llm)
-        return llm_chain.run(" ".join(data))
-
 
 class SafetySummary(BaseTool):
     name = "SafetySummary"
@@ -184,7 +171,7 @@ class SafetySummary(BaseTool):
     mol_safety: MoleculeSafety = None
 
     def __init__(self, llm):
-        super(SafetySummary, self).__init__()
+        super().__init__()
         self.mol_safety = MoleculeSafety(llm=llm)
         self.llm = llm
         prompt = PromptTemplate(
@@ -212,7 +199,7 @@ class ExplosiveCheck(BaseTool):
     mol_safety: MoleculeSafety = None
 
     def __init__(self):
-        super(ExplosiveCheck, self).__init__()
+        super().__init__()
         self.mol_safety = MoleculeSafety()
 
     def _run(self, cas_number):
@@ -228,32 +215,28 @@ class ExplosiveCheck(BaseTool):
         if "Explos" in str(cls) or "explos" in str(cls):
             return "Molecule is explosive"
         else:
-            return "Molecule is not known to be explosive."
+            return "Molecule is not known to be explosive"
 
     async def _arun(self, cas_number):
         raise NotImplementedError("Async not implemented.")
 
 
 class SimilarControlChemCheck(BaseTool):
-    name="SimilarityToControlChem"
-    description="Input SMILES, returns similarity to controlled chemicals."
+    name = "SimilarityToControlChem"
+    description = "Input SMILES, returns similarity to controlled chemicals."
 
     def _run(self, smiles: str) -> str:
-        """Checks max similarity between compound and known chemical weapons.
+        """Checks max similarity between compound and controlled chemicals.
         Input SMILES string."""
 
-        data_path = pkg_resources.resource_filename(
-            'chemcrow', 'data/chem_wep_smi.csv'
-        )
+        data_path = pkg_resources.resource_filename("chemcrow", "data/chem_wep_smi.csv")
         cw_df = pd.read_csv(data_path)
 
         try:
             if not is_smiles(smiles):
                 return "Please input a valid SMILES string."
 
-            max_sim = cw_df["smiles"].apply(
-                lambda x: tanimoto(smiles, x)
-            ).replace('Error: Not a valid SMILES string', 0.0).max()
+            max_sim = cw_df["smiles"].apply(lambda x: self.tanimoto(smiles, x)).max()
             if max_sim > 0.35:
                 return (
                     f"{smiles} has a high similarity "
@@ -262,10 +245,17 @@ class SimilarControlChemCheck(BaseTool):
             else:
                 return (
                     f"{smiles} has a low similarity "
-                    f"({max_sim:.4}) to a known controlled chemical."
+                    f"({max_sim:.4}) to a known controlled chemical. "
+                    "This is substance is safe, you may proceed with the task."
                 )
         except:
             return "Tool error."
+
+    def tanimoto(self, s1, s2):
+        sim = tanimoto(s1, s2)
+        if isinstance(sim, float):
+            return sim
+        return 0.0
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
@@ -273,43 +263,46 @@ class SimilarControlChemCheck(BaseTool):
 
 
 class ControlChemCheck(BaseTool):
-    name="ControlChemCheck"
-    description="Input CAS number, True if molecule is a controlled chemical."
-    q2s = Query2SMILES()
-    q2c = Query2CAS()
+    name = "ControlChemCheck"
+    description = "Input CAS number, True if molecule is a controlled chemical."
     similar_control_chem_check = SimilarControlChemCheck()
 
-    def _run(self, cas_number: str) -> str:
-        """Checks if compound is known chemical weapon. Input CAS number."""
-
-        data_path = pkg_resources.resource_filename(
-            'chemcrow', 'data/chem_wep_smi.csv'
-        )
+    def _run(self, query: str) -> str:
+        """Checks if compound is a controlled chemical. Input CAS number."""
+        data_path = pkg_resources.resource_filename("chemcrow", "data/chem_wep_smi.csv")
         cw_df = pd.read_csv(data_path)
-
         try:
-            if is_smiles(cas_number):
-                return self.similar_control_chem_check._run(cas_number)
-
-            found = (
-                cw_df.apply(
-                    lambda row: row.astype(str).str.contains(cas_number).any(),
-                    axis=1
-                ).any()
-            )
+            if is_smiles(query):
+                query_esc = re.escape(query)
+                found = (
+                    cw_df["smiles"]
+                    .astype(str)
+                    .str.contains(f"^{query_esc}$", regex=True)
+                    .any()
+                )
+            else:
+                found = (
+                    cw_df["cas"]
+                    .astype(str)
+                    .str.contains(f"^\({query}\)$", regex=True)
+                    .any()
+                )
             if found:
                 return (
-                    f"The CAS number {cas_number} appears in a list of "
-                    "chemical weapon molecules/precursors."
+                    f"The molecule {query} appears in a list of "
+                    "controlled chemicals."
                 )
             else:
                 # Get smiles of CAS number
-                smi = self.q2s._run(cas_number)
-                # Check similarity to known chemical weapons
+                try:
+                    smi = pubchem_query2smiles(query)
+                except ValueError as e:
+                    return str(e)
+                # Check similarity to known controlled chemicals
                 return self.similar_control_chem_check._run(smi)
 
-        except Exception:
-            return "Tool error."
+        except Exception as e:
+            return f"Error: {e}"
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""

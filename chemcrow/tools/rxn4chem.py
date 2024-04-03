@@ -28,7 +28,7 @@ class RXN4Chem(BaseTool):
 
     def __init__(self, rxn4chem_api_key):
         """Init object."""
-        super(RXN4Chem, self).__init__()
+        super().__init__()
 
         self.rxn4chem_api_key = rxn4chem_api_key
         self.rxn4chem = RXN4ChemistryWrapper(
@@ -135,7 +135,7 @@ class RXNRetrosynthesis(RXN4Chem):
 
     def __init__(self, rxn4chem_api_key, openai_api_key):
         """Init object."""
-        super(RXNRetrosynthesis, self).__init__(rxn4chem_api_key)
+        super().__init__(rxn4chem_api_key)
         self.openai_api_key = openai_api_key
 
     def _run(self, target: str) -> str:
