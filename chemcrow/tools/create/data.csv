@@ -1,0 +1,12 @@
+fill,mds_name,description
+BP,ACD_BP,Input SMILES and get the boiling point
+FlashPt,ACD_FP,Input SMILES and get the flashpoint
+InSol,ACD_Intrinsic_Sol,Input SMILES and get the intrinsic solubility in water
+LogPCons,ACD_LogP_v_LogP_Consensus,Input SMILES and get the logP consensus
+Density,ACD_Prop_Density,Input SMILES and get the density
+MolWt,ACD_Prop_MW,Input SMILES and get the molecular weight
+SurfTen,ACD_Prop_Surface_Tension,Input SMILES and get the surface tension
+VapPres25,ACD_VP_vp25,Input SMILES and get the vapor pressure at 25C
+SkinIrr,ACD_skin_irr,Input SMILES and get the skin irritation probability
+SynthAcc,rdkit_synthetic_accessibility,Input SMILES and get the synthetic accessibility score
+hOMOLUMOGap,homo_lumo,Input SMILES and get the HOMO/LUMO band gap
