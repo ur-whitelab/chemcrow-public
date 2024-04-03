@@ -35,6 +35,7 @@ setup(
         "rxn4chemistry",
         "duckduckgo-search",
         "wikipedia",
+        "beautifulsoup4<5.0.0,>=4.12.3"
     ],
     test_suite="tests",
     long_description=long_description,
