@@ -3,6 +3,12 @@ import os
 from langchain import agents
 from langchain.base_language import BaseLanguageModel
 
+from langchain.agents import load_tools
+from langchain.agents import initialize_agent
+from langchain.agents import AgentType, Tool
+from langchain.utilities import PythonREPL
+from langchain_experimental.tools import PythonREPLTool
+
 from chemcrow.tools import *
 
 
@@ -19,7 +25,7 @@ def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, verbose=True):
 
     all_tools = agents.load_tools(
         [
-            "python_repl",
+            #"python_repl",
             # "ddg-search",
             "wikipedia",
             # "human"
@@ -28,6 +34,7 @@ def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, verbose=True):
 
     all_tools += [
         Query2SMILES(chemspace_api_key),
+        PythonREPLTool(),
         Query2CAS(),
         SMILES2Name(),
         PatentCheck(),
@@ -38,11 +45,11 @@ def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, verbose=True):
         ControlChemCheck(),
         SimilarControlChemCheck(),
         SafetySummary(llm=llm),
-        Scholar2ResultLLM(
-            llm=llm,
-            openai_api_key=openai_api_key,
-            semantic_scholar_api_key=semantic_scholar_api_key
-        ),
+        # Scholar2ResultLLM(
+        #     llm=llm,
+        #     openai_api_key=openai_api_key,
+        #     semantic_scholar_api_key=semantic_scholar_api_key
+        # ),
     ]
     if chemspace_api_key:
         all_tools += [GetMoleculePrice(chemspace_api_key)]
