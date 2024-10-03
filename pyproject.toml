@@ -1,0 +1,59 @@
+[project]
+name = "chemcrow"
+dynamic = ["version"]
+description = "Accurate solution of reasoning-intensive chemical tasks, powered by LLMs."
+readme = "README.md"
+authors = [
+    { name = "Andres M Bran" },
+    { name = "Sam Cox" },
+    { name = "Andrew White" },
+    { name = "Philippe Schwaller" },
+]
+maintainers = [
+    { name = "Andrew White", email = "andrew.white@rochester.edu" }
+]
+requires-python = ">=3.9, <3.12"
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "ipython",
+    "python-dotenv",
+    "rdkit",
+    "synspace",
+    "openai==0.27.8",
+    "molbloom",
+    "paper-qa==1.1.1",
+    "google-search-results",
+    "langchain>=0.0.234,<=0.0.275",
+    "langchain_core==0.0.1",
+    "nest_asyncio",
+    "tiktoken",
+    "rmrkl",
+    "streamlit",
+    "rxn4chemistry",
+    "duckduckgo-search",
+    "wikipedia", 
+      "setuptools", 
+    "paper-scraper@git+https://github.com/blackadad/paper-scraper.git",
+]
+
+[project.urls]
+Homepage = "https://github.com/ur-whitelab/chemcrow-public"
+
+[tool.setuptools.packages.find]
+include = ["chemcrow*"]
+
+[tool.setuptools.package-data]
+chemcrow = ["data/chem_wep_smi.csv"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "chemcrow.version.__version__"}
