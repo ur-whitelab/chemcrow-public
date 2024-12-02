@@ -25,28 +25,36 @@ dependencies = [
     "python-dotenv",
     "rdkit",
     "synspace",
-    "openai==0.27.8",
+    "openai==1.51.0",
     "molbloom",
-    "paper-qa==1.1.1",
+    "paper-qa>=4.9.0",
     "google-search-results",
-    "langchain>=0.0.234,<=0.0.275",
-    "langchain_core==0.0.1",
+    "langchain>=0.3,<0.4",
+    "langchain-core>=0.3,<0.4",
     "nest_asyncio",
     "tiktoken",
-    "rmrkl",
     "streamlit",
     "rxn4chemistry",
     "duckduckgo-search",
-    "wikipedia", 
-      "setuptools", 
+    "wikipedia",
+    "setuptools",
     "paper-scraper@git+https://github.com/blackadad/paper-scraper.git",
+    "langchain-openai>=0.2.1",
+    "langchain-community>=0.3.1",
+    "langchain-anthropic>=0.2.1",
+    "pydantic>=2.9.2",
+    "ipykernel>=6.29.5",
+    "notebook>=7.2.2",
+    "pytest>=8.3.4",
+    "langchain-experimental>=0.3.3",
 ]
 
 [project.urls]
 Homepage = "https://github.com/ur-whitelab/chemcrow-public"
 
 [tool.setuptools.packages.find]
-include = ["chemcrow*"]
+where = ["."]
+include = ["rmrkl*", "chemcrow*"]
 
 [tool.setuptools.package-data]
 chemcrow = ["data/chem_wep_smi.csv"]
@@ -57,3 +65,10 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
 version = {attr = "chemcrow.version.__version__"}
+
+[tool.rye]
+managed = true
+python_version = "3.11"
+
+[tool.rye.scripts]
+test = "pytest"

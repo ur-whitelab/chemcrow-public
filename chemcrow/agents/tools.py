@@ -19,7 +19,7 @@ def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, verbose=True):
 
     all_tools = agents.load_tools(
         [
-            "python_repl",
+            # "python_repl",
             # "ddg-search",
             "wikipedia",
             # "human"
@@ -27,6 +27,7 @@ def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, verbose=True):
     )
 
     all_tools += [
+        # PythonREPL(),
         Query2SMILES(chemspace_api_key),
         Query2CAS(),
         SMILES2Name(),

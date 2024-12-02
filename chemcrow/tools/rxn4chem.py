@@ -9,6 +9,7 @@ from typing import Optional
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import HumanMessage
 from langchain.tools import BaseTool
+from pydantic import Field
 from rxn4chemistry import RXN4ChemistryWrapper  # type: ignore
 
 from chemcrow.utils import is_smiles
@@ -19,12 +20,12 @@ __all__ = ["RXNPredict", "RXNRetrosynthesis"]
 class RXN4Chem(BaseTool):
     """Wrapper for RXN4Chem functionalities."""
 
-    name: str
-    description: str
-    rxn4chem_api_key: Optional[str] = None
-    rxn4chem: RXN4ChemistryWrapper = None
-    base_url: str = "https://rxn.res.ibm.com"
-    sleep_time: int = 5
+    name: str = Field(default="RXN4Chem")
+    description: str = Field(default="Wrapper for RXN4Chem functionalities.")
+    rxn4chem_api_key: Optional[str] = Field(default=None)
+    rxn4chem: Optional[RXN4ChemistryWrapper] = Field(default=None)
+    base_url: str = Field(default="https://rxn.res.ibm.com")
+    sleep_time: int = Field(default=5)
 
     def __init__(self, rxn4chem_api_key):
         """Init object."""
@@ -82,12 +83,9 @@ class RXN4Chem(BaseTool):
 class RXNPredict(RXN4Chem):
     """Predict reaction."""
 
-    name = "ReactionPredict"
-    description = (
-        "Predict the outcome of a chemical reaction. "
-        "Takes as input the SMILES of the reactants separated by a dot '.', "
-        "returns SMILES of the products."
-    )
+    name: str = Field(default="ReactionPredict")
+    description: str = Field(default="Predict the outcome of a chemical reaction. Takes as input the SMILES of the reactants separated by a dot '.', returns SMILES of the products.")
+
 
     def _run(self, reactants: str) -> str:
         """Run reaction prediction."""
@@ -126,12 +124,9 @@ class RXNPredict(RXN4Chem):
 class RXNRetrosynthesis(RXN4Chem):
     """Predict retrosynthesis."""
 
-    name = "ReactionRetrosynthesis"
-    description = (
-        "Obtain the synthetic route to a chemical compound. "
-        "Takes as input the SMILES of the product, returns recipe."
-    )
-    openai_api_key: str = ""
+    name: str = Field(default="ReactionRetrosynthesis")
+    description: str = Field(default="Obtain the synthetic route to a chemical compound. Takes as input the SMILES of the product, returns recipe.")
+    openai_api_key: str = Field(default="")
 
     def __init__(self, rxn4chem_api_key, openai_api_key):
         """Init object."""
