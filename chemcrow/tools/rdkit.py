@@ -1,4 +1,5 @@
 from langchain.tools import BaseTool
+from pydantic import Field
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 
@@ -6,10 +7,9 @@ from chemcrow.utils import *
 
 
 class MolSimilarity(BaseTool):
-    name = "MolSimilarity"
-    description = (
-        "Input two molecule SMILES (separated by '.'), returns Tanimoto similarity."
-    )
+    name: str = Field(default="MolSimilarity")
+    description: str = Field(default="Input two molecule SMILES (separated by '.'), returns Tanimoto similarity.")
+
 
     def __init__(self):
         super().__init__()
@@ -49,8 +49,8 @@ class MolSimilarity(BaseTool):
 
 
 class SMILES2Weight(BaseTool):
-    name = "SMILES2Weight"
-    description = "Input SMILES, returns molecular weight."
+    name: str = Field(default="SMILES2Weight")
+    description: str = Field(default="Input SMILES, returns molecular weight.")
 
     def __init__(
         self,
@@ -70,9 +70,9 @@ class SMILES2Weight(BaseTool):
 
 
 class FuncGroups(BaseTool):
-    name = "FunctionalGroups"
-    description = "Input SMILES, return list of functional groups in the molecule."
-    dict_fgs: dict = None
+    name: str = Field(default="FunctionalGroups")
+    description: str = Field(default="Input SMILES, return list of functional groups in the molecule.")
+    dict_fgs: dict = Field(default=None)
 
     def __init__(
         self,

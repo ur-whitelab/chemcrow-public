@@ -1,4 +1,5 @@
 from langchain.tools import BaseTool
+from pydantic import Field
 
 from chemcrow.tools.chemspace import ChemSpace
 from chemcrow.tools.safety import ControlChemCheck
@@ -12,11 +13,11 @@ from chemcrow.utils import (
 
 
 class Query2CAS(BaseTool):
-    name = "Mol2CAS"
-    description = "Input molecule (name or SMILES), returns CAS number."
-    url_cid: str = None
-    url_data: str = None
-    ControlChemCheck = ControlChemCheck()
+    name: str = Field(default="Mol2CAS")
+    description: str = Field(default="Input molecule (name or SMILES), returns CAS number.")
+    url_cid: str = Field(default=None)
+    url_data: str = Field(default=None)
+    control_chem_check: ControlChemCheck = Field(default_factory=ControlChemCheck) # type: ignore
 
     def __init__(
         self,
@@ -45,7 +46,7 @@ class Query2CAS(BaseTool):
                 except ValueError as e:
                     return str(e)
             # check if mol is controlled
-            msg = self.ControlChemCheck._run(smiles)
+            msg = self.control_chem_check._run(smiles)
             if "high similarity" in msg or "appears" in msg:
                 return f"CAS number {cas}found, but " + msg
             return cas
@@ -58,11 +59,11 @@ class Query2CAS(BaseTool):
 
 
 class Query2SMILES(BaseTool):
-    name = "Name2SMILES"
-    description = "Input a molecule name, returns SMILES."
-    url: str = None
-    chemspace_api_key: str = None
-    ControlChemCheck = ControlChemCheck()
+    name: str = Field(default="Name2SMILES")
+    description: str = Field(default="Input a molecule name, returns SMILES.")
+    url: str = Field(default=None)
+    chemspace_api_key: str = Field(default=None)
+    control_chem_check: ControlChemCheck = Field(default_factory=ControlChemCheck) # type: ignore
 
     def __init__(self, chemspace_api_key: str = None):
         super().__init__()
@@ -88,7 +89,7 @@ class Query2SMILES(BaseTool):
                 return str(e)
 
         # check if mol is controlled
-        msg = "Note: " + self.ControlChemCheck._run(smi)
+        msg = "Note: " + self.control_chem_check._run(smi)
         if "high similarity" in msg or "appears" in msg:
             return f"CAS number {smi}found, but " + msg
         return smi
@@ -99,10 +100,10 @@ class Query2SMILES(BaseTool):
 
 
 class SMILES2Name(BaseTool):
-    name = "SMILES2Name"
-    description = "Input SMILES, returns molecule name."
-    ControlChemCheck = ControlChemCheck()
-    query2smiles = Query2SMILES()
+    name: str = Field(default="SMILES2Name")
+    description: str = Field(default="Input SMILES, returns molecule name.")
+    control_chem_check: ControlChemCheck = Field(default_factory=ControlChemCheck) # type: ignore
+    query2smiles: Query2SMILES = Field(default_factory=Query2SMILES) # type: ignore
 
     def __init__(self):
         super().__init__()
@@ -117,7 +118,7 @@ class SMILES2Name(BaseTool):
                     raise ValueError("Invalid molecule input, no Pubchem entry")
             name = smiles2name(query)
             # check if mol is controlled
-            msg = "Note: " + self.ControlChemCheck._run(query)
+            msg = "Note: " + self.control_chem_check._run(query)
             if "high similarity" in msg or "appears" in msg:
                 return f"Molecule name {name} found, but " + msg
             return name

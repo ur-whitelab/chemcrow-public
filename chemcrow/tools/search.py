@@ -7,8 +7,9 @@ import paperqa
 import paperscraper
 from langchain import SerpAPIWrapper
 from langchain.base_language import BaseLanguageModel
-from langchain.tools import BaseTool
 from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.tools import BaseTool
+from pydantic import Field
 from pypdf.errors import PdfReadError
 
 from chemcrow.utils import is_multiple_smiles, split_smiles
@@ -73,14 +74,11 @@ def scholar2result_llm(llm, query, k=5, max_sources=2, openai_api_key=None, sema
 
 
 class Scholar2ResultLLM(BaseTool):
-    name = "LiteratureSearch"
-    description = (
-        "Useful to answer questions that require technical "
-        "knowledge. Ask a specific question."
-    )
-    llm: BaseLanguageModel = None
-    openai_api_key: str = None 
-    semantic_scholar_api_key: str = None
+    name: str = Field(default="LiteratureSearch")
+    description: str = Field(default="Useful to answer questions that require technical knowledge. Ask a specific question.")
+    llm: BaseLanguageModel = Field(default=None)
+    openai_api_key: str = Field(default=None)
+    semantic_scholar_api_key: str = Field(default=None)
 
 
     def __init__(self, llm, openai_api_key, semantic_scholar_api_key):
@@ -113,12 +111,9 @@ def web_search(keywords, search_engine="google"):
 
 
 class WebSearch(BaseTool):
-    name = "WebSearch"
-    description = (
-        "Input a specific question, returns an answer from web search. "
-        "Do not mention any specific molecule names, but use more general features to formulate your questions."
-    )
-    serp_api_key: str = None
+    name: str = Field(default="WebSearch")
+    description: str = Field(default="Input a specific question, returns an answer from web search. Do not mention any specific molecule names, but use more general features to formulate your questions.")
+    serp_api_key: str = Field(default=None)
 
     def __init__(self, serp_api_key: str = None):
         super().__init__()
@@ -136,8 +131,8 @@ class WebSearch(BaseTool):
 
 
 class PatentCheck(BaseTool):
-    name = "PatentCheck"
-    description = "Input SMILES, returns if molecule is patented. You may also input several SMILES, separated by a period."
+    name: str = Field(default="PatentCheck")
+    description: str = Field(default="Input SMILES, returns if molecule is patented. You may also input several SMILES, separated by a period.")
 
     def _run(self, smiles: str) -> str:
         """Checks if compound is patented. Give this tool only one SMILES string"""
