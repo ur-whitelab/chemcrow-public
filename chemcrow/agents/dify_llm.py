@@ -17,8 +17,13 @@ from dify_client import ChatClient
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
 from langchain_core.language_models import BaseChatModel
 from langchain_core.language_models.base import LanguageModelInput
-from langchain_core.messages import AIMessage, BaseMessage, SystemMessage
-from langchain_core.outputs import ChatGeneration, ChatResult, GenerationChunk
+from langchain_core.messages import (
+    AIMessage,
+    AIMessageChunk,
+    BaseMessage,
+    SystemMessage,
+)
+from langchain_core.outputs import ChatGeneration, ChatGenerationChunk, ChatResult
 from langchain_core.runnables import Runnable
 from langchain_core.tools import BaseTool
 from langchain_core.utils.function_calling import convert_to_openai_tool
@@ -51,18 +56,71 @@ class DifyCustomLLM(BaseChatModel):
         return response_text
         
 
-    def _stream(self, prompt: str, stop: Optional[List[str]] = None, run_manager: Optional[CallbackManagerForLLMRun] = None, **kwargs: Any) -> Iterator[GenerationChunk]:
-        chat_response = self.chat_client.create_chat_message(inputs={}, query=prompt, user=self.user_id, response_mode="streaming")
+    def _stream(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any
+    ) -> Iterator[ChatGenerationChunk]:
+        additional_kwargs = {}  
+        if "tools" in kwargs:
+            tools_description = self._render_tools_description(kwargs["tools"])
+            prompt = f"system: {tools_description}\n{prompt}"
+            kwargs.pop("tools")
+        
+        if "tool_choice" in kwargs:
+            kwargs.pop("tool_choice")
+
+        chat_response = self.chat_client.create_chat_message(
+            inputs={},
+            query=prompt,
+            user=self.user_id,
+            response_mode="streaming"
+        )
         chat_response.raise_for_status()
 
+        accumulated_text = ""
         for line in chat_response.iter_lines(decode_unicode=True):
             line = line.split('data:', 1)[-1]
             if line.strip():
                 line = json.loads(line.strip())
-                chunk = GenerationChunk(text=line.get('answer', ''))
+                text = line.get('answer', '')
+                accumulated_text += text
+
+                # stopワードのチェック
+                if stop:
+                    for stop_word in stop:
+                        if stop_word in text:
+                            text = text[:text.index(stop_word)]
+                            break
+
+                # AIMessageを使用してChatGenerationChunkを作成
+                message = AIMessageChunk(content=text)
+                chunk = ChatGenerationChunk(message=message)
                 if run_manager:
-                    run_manager.on_llm_new_token(chunk.text, chunk=chunk)
+                    run_manager.on_llm_new_token(text, chunk=chunk)
                 yield chunk
+
+
+        # ストリーミング完了後、ツール呼び出しの処理
+        if "tools" in kwargs:
+            try:
+                response_json = json.loads(accumulated_text)
+                if "name" in response_json and "arguments" in response_json:
+                    tool_call = {
+                        "id": f"call_{uuid.uuid4().hex}",
+                        "function": {
+                            "arguments": json.dumps(response_json["arguments"]),
+                            "name": response_json["name"],
+                        },
+                        "type": "function",
+                    }
+                    message = AIMessageChunk(content="", additional_kwargs={"tool_calls": [tool_call]})
+                    chunk = ChatGenerationChunk(message=message)
+                    yield chunk
+            except json.JSONDecodeError:
+                pass
     
     def _generate(
         self,
@@ -83,7 +141,7 @@ class DifyCustomLLM(BaseChatModel):
     
         if "tool_choice" in kwargs:
             kwargs.pop("tool_choice")
-            
+
         chat_response = self.chat_client.create_chat_message(
             inputs={},
             query=prompt,
