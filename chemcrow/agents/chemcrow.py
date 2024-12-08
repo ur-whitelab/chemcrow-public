@@ -44,7 +44,7 @@ class ChemCrow:
         try:
             self.llm = _make_dify_llm(model, temp, dify_api_key,dify_base_url, streaming)
         except ValidationError:
-            raise ValueError("Invalid OpenAI API key")
+            raise ValueError("Invalid Dify API key")
 
         if tools is None:
             tools_llm = _make_dify_llm(tools_model, temp, dify_api_key,dify_base_url, streaming)

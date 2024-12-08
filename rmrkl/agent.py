@@ -6,6 +6,7 @@ from langchain.agents.agent import Agent, AgentOutputParser
 from langchain.agents.mrkl.base import ZeroShotAgent
 from langchain.callbacks.base import BaseCallbackManager
 from langchain.chains import LLMChain
+from langchain.chat_models.base import BaseChatModel
 from langchain.prompts import PromptTemplate
 from langchain.prompts.chat import (
     AIMessagePromptTemplate,
@@ -14,7 +15,6 @@ from langchain.prompts.chat import (
     SystemMessagePromptTemplate,
 )
 from langchain.tools import BaseTool
-from langchain_core.language_models.llms import LLM
 
 from .output_parser import ChatZeroShotOutputParser
 from .prompts import FORMAT_INSTRUCTIONS, PREFIX, QUESTION_PROMPT, SUFFIX
@@ -74,7 +74,7 @@ class ChatZeroShotAgent(ZeroShotAgent):
     @classmethod
     def from_llm_and_tools(
         cls,
-        llm: LLM,
+        llm: BaseChatModel,
         tools: Sequence[BaseTool],
         callback_manager: Optional[BaseCallbackManager] = None,
         output_parser: Optional[AgentOutputParser] = ChatZeroShotOutputParser(),
