@@ -47,6 +47,7 @@ dependencies = [
     "notebook>=7.2.2",
     "pytest>=8.3.4",
     "langchain-experimental>=0.3.3",
+    "dify-client>=0.1.10",
 ]
 
 [project.urls]
@@ -70,5 +71,6 @@ version = {attr = "chemcrow.version.__version__"}
 managed = true
 python_version = "3.11"
 
+
 [tool.rye.scripts]
-test = "pytest"
+test = { cmd = "pytest tests/", env = { PYTHONPATH = "." } } 

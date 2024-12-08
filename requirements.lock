@@ -82,6 +82,8 @@ decorator==5.1.1
 defusedxml==0.7.1
     # via langchain-anthropic
     # via nbconvert
+dify-client==0.1.10
+    # via chemcrow
 distro==1.9.0
     # via anthropic
     # via openai
@@ -412,6 +414,7 @@ referencing==0.35.1
 regex==2024.9.11
     # via tiktoken
 requests==2.32.3
+    # via dify-client
     # via google-search-results
     # via huggingface-hub
     # via jupyterlab-server
