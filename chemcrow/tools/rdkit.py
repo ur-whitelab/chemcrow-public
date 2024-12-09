@@ -1,15 +1,18 @@
 from langchain.tools import BaseTool
-from pydantic import Field
+from pydantic import BaseModel, Field
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 
 from chemcrow.utils import *
 
 
+class MolSimilarityInput(BaseModel):
+    smiles_pair: str = Field(..., description="Two SMILES strings separated by a dot (.)")
+
 class MolSimilarity(BaseTool):
     name: str = Field(default="MolSimilarity")
     description: str = Field(default="Input two molecule SMILES (separated by '.'), returns Tanimoto similarity.")
-
+    args_schema: type[BaseModel] = MolSimilarityInput
 
     def __init__(self):
         super().__init__()
@@ -48,10 +51,13 @@ class MolSimilarity(BaseTool):
         raise NotImplementedError()
 
 
+class SMILES2WeightInput(BaseModel):
+    smiles: str = Field(..., description="SMILES string of the molecule")
+
 class SMILES2Weight(BaseTool):
     name: str = Field(default="SMILES2Weight")
     description: str = Field(default="Input SMILES, returns molecular weight.")
-
+    args_schema: type[BaseModel] = SMILES2WeightInput
     def __init__(
         self,
     ):
@@ -69,11 +75,14 @@ class SMILES2Weight(BaseTool):
         raise NotImplementedError()
 
 
+class FuncGroupsInput(BaseModel):
+    smiles: str = Field(..., description="SMILES string of the molecule")
+
 class FuncGroups(BaseTool):
     name: str = Field(default="FunctionalGroups")
     description: str = Field(default="Input SMILES, return list of functional groups in the molecule.")
     dict_fgs: dict = Field(default=None)
-
+    args_schema: type[BaseModel] = FuncGroupsInput
     def __init__(
         self,
     ):

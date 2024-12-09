@@ -1,5 +1,5 @@
 from langchain.tools import BaseTool
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from chemcrow.tools.chemspace import ChemSpace
 from chemcrow.tools.safety import ControlChemCheck
@@ -12,13 +12,16 @@ from chemcrow.utils import (
 )
 
 
+class Query2CASInput(BaseModel):
+    query: str = Field(..., description="Molecule name or SMILES string")
+
 class Query2CAS(BaseTool):
     name: str = Field(default="Mol2CAS")
     description: str = Field(default="Input molecule (name or SMILES), returns CAS number.")
     url_cid: str = Field(default=None)
     url_data: str = Field(default=None)
     control_chem_check: ControlChemCheck = Field(default_factory=ControlChemCheck) # type: ignore
-
+    args_schema: type[BaseModel] = Query2CASInput
     def __init__(
         self,
     ):
@@ -56,7 +59,8 @@ class Query2CAS(BaseTool):
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
         raise NotImplementedError()
-
+class Query2SMILESInput(BaseModel):
+    query: str = Field(..., description="Molecule name")
 
 class Query2SMILES(BaseTool):
     name: str = Field(default="Name2SMILES")
@@ -64,6 +68,7 @@ class Query2SMILES(BaseTool):
     url: str = Field(default=None)
     chemspace_api_key: str = Field(default=None)
     control_chem_check: ControlChemCheck = Field(default_factory=ControlChemCheck) # type: ignore
+    args_schema: type[BaseModel] = Query2SMILESInput
 
     def __init__(self, chemspace_api_key: str = None):
         super().__init__()
@@ -99,17 +104,21 @@ class Query2SMILES(BaseTool):
         raise NotImplementedError()
 
 
+class SMILES2NameInput(BaseModel):
+    query: str = Field(..., description="SMILES string or molecule name")
+
 class SMILES2Name(BaseTool):
     name: str = Field(default="SMILES2Name")
     description: str = Field(default="Input SMILES, returns molecule name.")
     control_chem_check: ControlChemCheck = Field(default_factory=ControlChemCheck) # type: ignore
     query2smiles: Query2SMILES = Field(default_factory=Query2SMILES) # type: ignore
-
+    args_schema: type[BaseModel] = SMILES2NameInput
     def __init__(self):
         super().__init__()
 
     def _run(self, query: str) -> str:
         """Use the tool."""
+        rdBase.DisableLog("rdApp.warning")
         try:
             if not is_smiles(query):
                 try:
