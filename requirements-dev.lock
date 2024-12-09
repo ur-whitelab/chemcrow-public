@@ -91,6 +91,8 @@ duckduckgo-search==6.2.13
     # via chemcrow
 executing==2.1.0
     # via stack-data
+faiss-cpu==1.9.0.post1
+    # via chemcrow
 fastjsonschema==2.21.0
     # via nbformat
 filelock==3.16.1
@@ -121,6 +123,7 @@ httpcore==1.0.6
 httpx==0.27.2
     # via anthropic
     # via jupyterlab
+    # via langgraph-sdk
     # via langsmith
     # via openai
 huggingface-hub==0.25.1
@@ -219,12 +222,20 @@ langchain-core==0.3.21
     # via langchain-experimental
     # via langchain-openai
     # via langchain-text-splitters
+    # via langgraph
+    # via langgraph-checkpoint
 langchain-experimental==0.3.3
     # via chemcrow
 langchain-openai==0.2.1
     # via chemcrow
 langchain-text-splitters==0.3.0
     # via langchain
+langgraph==0.2.56
+    # via chemcrow
+langgraph-checkpoint==2.0.8
+    # via langgraph
+langgraph-sdk==0.1.43
+    # via langgraph
 langsmith==0.1.130
     # via langchain
     # via langchain-community
@@ -249,6 +260,8 @@ mistune==3.0.2
     # via nbconvert
 molbloom==2.2.1
     # via chemcrow
+msgpack==1.1.0
+    # via langgraph-checkpoint
 multidict==6.1.0
     # via aiohttp
     # via yarl
@@ -274,6 +287,7 @@ notebook-shim==0.2.4
     # via notebook
 numpy==1.26.4
     # via contourpy
+    # via faiss-cpu
     # via langchain
     # via langchain-community
     # via matplotlib
@@ -289,11 +303,13 @@ openai==1.51.0
     # via langchain-openai
     # via paper-qa
 orjson==3.10.7
+    # via langgraph-sdk
     # via langsmith
 overrides==7.7.0
     # via jupyter-server
 packaging==24.1
     # via altair
+    # via faiss-cpu
     # via huggingface-hub
     # via ipykernel
     # via jupyter-server

@@ -39,7 +39,7 @@ dependencies = [
     "wikipedia",
     "setuptools",
     "paper-scraper@git+https://github.com/blackadad/paper-scraper.git",
-    "langchain-openai>=0.2.1",
+    "langchain-openai>=0.2.11",
     "langchain-community>=0.3.1",
     "langchain-anthropic>=0.2.1",
     "pydantic>=2.9.2",
@@ -48,6 +48,8 @@ dependencies = [
     "pytest>=8.3.4",
     "langchain-experimental>=0.3.3",
     "dify-client>=0.1.10",
+    "faiss-cpu>=1.9.0.post1",
+    "langgraph>=0.2.56",
 ]
 
 [project.urls]

@@ -15,6 +15,7 @@ from typing import (
 
 from dify_client import ChatClient
 from langchain_core.callbacks.manager import CallbackManagerForLLMRun
+from langchain_core.exceptions import OutputParserException
 from langchain_core.language_models import BaseChatModel
 from langchain_core.language_models.base import LanguageModelInput
 from langchain_core.messages import (
@@ -23,6 +24,7 @@ from langchain_core.messages import (
     BaseMessage,
     SystemMessage,
 )
+from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.outputs import ChatGeneration, ChatGenerationChunk, ChatResult
 from langchain_core.runnables import Runnable
 from langchain_core.tools import BaseTool
@@ -47,7 +49,7 @@ class DifyCustomLLM(BaseChatModel):
         response_data = chat_response.json()
         response_text = response_data.get('answer', '')
         
-        # stopワードが指定されている場合、応答テキストを適切に処理
+        # Process the response text appropriately if stop words are specified
         if stop:
             for stop_word in stop:
                 if stop_word in response_text:
@@ -66,6 +68,7 @@ class DifyCustomLLM(BaseChatModel):
         additional_kwargs = {}  
         if "tools" in kwargs:
             tools_description = self._render_tools_description(kwargs["tools"])
+
             prompt = f"system: {tools_description}\n{prompt}"
             kwargs.pop("tools")
         
@@ -88,14 +91,14 @@ class DifyCustomLLM(BaseChatModel):
                 text = line.get('answer', '')
                 accumulated_text += text
 
-                # stopワードのチェック
+                # Check for stop words
                 if stop:
                     for stop_word in stop:
                         if stop_word in text:
                             text = text[:text.index(stop_word)]
                             break
 
-                # AIMessageを使用してChatGenerationChunkを作成
+                # Create ChatGenerationChunk using AIMessage
                 message = AIMessageChunk(content=text)
                 chunk = ChatGenerationChunk(message=message)
                 if run_manager:
@@ -103,7 +106,7 @@ class DifyCustomLLM(BaseChatModel):
                 yield chunk
 
 
-        # ストリーミング完了後、ツール呼び出しの処理
+        # Process tool calls after streaming is complete
         if "tools" in kwargs:
             try:
                 response_json = json.loads(accumulated_text)
@@ -129,19 +132,69 @@ class DifyCustomLLM(BaseChatModel):
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> ChatResult:
-        prompt = "\n".join([f"{msg.type}: {msg.content}" for msg in messages])
         additional_kwargs = {}
         did_bind_tools = False
         if "tools" in kwargs:
-        # ツールが提供されている場合、システムプロンプトを追加
-            tools_description = self._render_tools_description(kwargs["tools"])
+            
+        # Add system prompt if tools are provided
+            prompt_template = """You are an AI assistant that carefully follows this process:
+
+1. THOUGHT:
+Analyze the previous response (if any) and the user's question:
+- What information was obtained from the previous tool use
+- What is being asked in the new question
+- What additional information might be needed
+
+2. REASONING:
+Based on your analysis, determine:
+- Whether you need to use a tool
+- Which tool would be most appropriate
+- What arguments the tool needs
+
+3. ACTION:
+IMPORTANT: When using a tool, you must ALWAYS respond with a JSON object and NOTHING ELSE.
+Be sure to enclose the code in code blocks beginning with ```json'''!
+DO NOT include any explanatory text or additional content around the JSON.
+The JSON must follow this exact format:
+{
+    "name": "tool_name",
+    "arguments": {
+        "arg1": "value1",
+        "arg2": "value2"
+    }
+}
+You can use the following tools:
+{tools_description goes here}
+
+- If no tool is needed, proceed to the final answer step
+
+4. REFLECTION:
+After receiving tool results:
+- Evaluate if the results answer the original question
+- Determine if additional tool calls are needed
+- Consider if you have enough information for a final answer
+
+5. FINAL ANSWER:
+When you have sufficient information:
+- Provide a clear, direct answer to the user's question
+- Reference the information obtained from tools
+- Explain your reasoning if appropriate
+
+Always structure your response as:
+THOUGHT: [your analysis]
+REASONING: [your reasoning process]
+ACTION: [tool JSON or "Proceed to final answer"]
+[If tool was used] REFLECTION: [your reflection on results]
+[When ready] FINAL ANSWER: [your response to the user]
+                """
+            tools_description =prompt_template.replace("{tools_description goes here}", self._render_tools_description(kwargs["tools"])) 
             messages.insert(0, SystemMessage(content=tools_description))
             did_bind_tools = True
-            kwargs.pop("tools")  # toolsパラメータを削除
+            kwargs.pop("tools")  # Remove tools parameter
     
         if "tool_choice" in kwargs:
             kwargs.pop("tool_choice")
-
+        prompt = "\n".join([f"{msg.type}: {msg.content}" for msg in messages])
         chat_response = self.chat_client.create_chat_message(
             inputs={},
             query=prompt,
@@ -152,14 +205,14 @@ class DifyCustomLLM(BaseChatModel):
         response_data = chat_response.json()
         response_text = response_data.get('answer', '')
 
-        # stopワードの処理
+        # Process stop words
         if stop:
             for stop_word in stop:
                 if stop_word in response_text:
                     response_text = response_text[:response_text.index(stop_word)]
         if did_bind_tools:
             try:
-                response_json = json.loads(response_text)
+                response_json = JsonOutputParser().parse(response_text)
                 if "name" in response_json and "arguments" in response_json:
                     tool_call = {
                         "id": f"call_{uuid.uuid4().hex}",
@@ -170,10 +223,11 @@ class DifyCustomLLM(BaseChatModel):
                         "type": "function",
                     }
                     additional_kwargs["tool_calls"] = [tool_call]
-                    response_text = ""  # OpenAIのスタイルに合わせて空にする
-            except json.JSONDecodeError:
+                    response_text = ""  # Set to empty to match OpenAI style
+            except (json.JSONDecodeError, OutputParserException):
+            # JSONパースに失敗した場合は通常のテキスト応答として処理
                 pass
-        # ChatGenerationとChatResultの作成
+        # Create ChatGeneration and ChatResult
         generation = ChatGeneration(
         message=AIMessage(
             content=response_text,
@@ -183,14 +237,18 @@ class DifyCustomLLM(BaseChatModel):
         return ChatResult(generations=[generation])
 
     def _render_tools_description(self, tools: List[Any]) -> str:
-        """ツールの説明をシステムプロンプト用にレンダリング"""
+        """Render tool descriptions for system prompt"""
         tool_descriptions = []
         for tool in tools:
             if isinstance(tool, dict):
-                desc = f"名前: {tool.get('name')}\n説明: {tool.get('description')}"
-                tool_descriptions.append(desc)
+                desc = f"Name: {tool.get('name')}\nDescription: {tool.get('description')}"
+            elif isinstance(tool, BaseTool):
+                desc = f"Name: {tool.name}\nDescription: {tool.description}\nArguments: {tool.args}" 
+            else:
+                desc = f"Name: {tool.__class__.__name__}\nDescription: {str(tool)}"
+            tool_descriptions.append(desc)
     
-        return "利用可能なツール:\n" + "\n\n".join(tool_descriptions)
+        return "Available tools:\n" + "\n\n".join(tool_descriptions)
     def bind_tools(
         self,
         tools: Sequence[Union[Dict[str, Any], Type[BaseModel], Callable, BaseTool]],
@@ -200,30 +258,30 @@ class DifyCustomLLM(BaseChatModel):
         ] = None,
         **kwargs: Any,
     ) -> Runnable[LanguageModelInput, BaseMessage]:
-        """ツールをLLMにバインドするメソッド。
+        """Method to bind tools to the LLM.
 
         Args:
-            tools: バインドするツール定義のリスト。
-            tool_choice: 使用するツールの指定方法。
-            **kwargs: 追加のパラメータ
+            tools: List of tool definitions to bind.
+            tool_choice: Method to specify which tool to use.
+            **kwargs: Additional parameters.
         """
-        # ツールをOpenAI形式に変換
+        # Convert tools to OpenAI format
         formatted_tools = [convert_to_openai_tool(tool) for tool in tools]
 
-        # tool_choiceの検証と処理
+        # Validate and process tool_choice
         if tool_choice is not None and tool_choice:
             if isinstance(tool_choice, str) and tool_choice not in ("auto", "any", "none"):
                 tool_choice = {"type": "function", "function": {"name": tool_choice}}
             if isinstance(tool_choice, dict) and len(formatted_tools) != 1:
                 raise ValueError(
-                    "tool_choiceを指定する場合は、ちょうど1つのツールを提供する必要があります。"
-                    f"現在のツール数: {len(formatted_tools)}"
+                    "If tool_choice is specified, exactly one tool must be provided."
+                    f"Current number of tools: {len(formatted_tools)}"
                 )
             if isinstance(tool_choice, bool):
                 if len(tools) > 1:
                     raise ValueError(
-                        "tool_choiceをTrueにできるのは1つのツールがある場合のみです。"
-                        f"現在のツール数: {len(tools)}"
+                        "tool_choice can be True only if there is one tool."
+                        f"Current number of tools: {len(tools)}"
                     )
                 tool_name = formatted_tools[0]["function"]["name"]
                 tool_choice = {
