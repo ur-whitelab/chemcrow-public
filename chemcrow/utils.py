@@ -1,10 +1,10 @@
 import re
 
 import requests
-from rdkit import Chem, DataStructs
+from rdkit import Chem, DataStructs, rdBase
 from rdkit.Chem import AllChem
 
-
+rdBase.DisableLog("rdApp.warning")
 def is_smiles(text):
     try:
         m = Chem.MolFromSmiles(text, sanitize=False)
