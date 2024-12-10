@@ -31,113 +31,7 @@ from langchain_core.tools import BaseTool
 from langchain_core.utils.function_calling import convert_to_openai_tool
 from pydantic import BaseModel, Field, HttpUrl
 
-
-class DifyCustomLLM(BaseChatModel):
-    api_key: str = Field(..., description="API key for Dify")
-    user_id: str = Field(..., description="User ID for Dify")
-    base_url: HttpUrl = Field(..., description="Base URL for Dify API")
-    chat_client: ChatClient = Field(None, exclude=True)
-
-    def __init__(self, **data):
-        super().__init__(**data)
-        self.chat_client = ChatClient(api_key=self.api_key)
-        self.chat_client.base_url = str(self.base_url)
-
-    def _call(self, prompt: str, stop: Optional[List[str]] = None, run_manager: Optional[CallbackManagerForLLMRun] = None, **kwargs: Any) -> str:
-        chat_response = self.chat_client.create_chat_message(inputs={}, query=prompt, user=self.user_id, response_mode="blocking")
-        chat_response.raise_for_status()
-        response_data = chat_response.json()
-        response_text = response_data.get('answer', '')
-        
-        # Process the response text appropriately if stop words are specified
-        if stop:
-            for stop_word in stop:
-                if stop_word in response_text:
-                    response_text = response_text[:response_text.index(stop_word)]
-        
-        return response_text
-        
-
-    def _stream(
-        self,
-        prompt: str,
-        stop: Optional[List[str]] = None,
-        run_manager: Optional[CallbackManagerForLLMRun] = None,
-        **kwargs: Any
-    ) -> Iterator[ChatGenerationChunk]:
-        additional_kwargs = {}  
-        if "tools" in kwargs:
-            tools_description = self._render_tools_description(kwargs["tools"])
-
-            prompt = f"system: {tools_description}\n{prompt}"
-            kwargs.pop("tools")
-        
-        if "tool_choice" in kwargs:
-            kwargs.pop("tool_choice")
-
-        chat_response = self.chat_client.create_chat_message(
-            inputs={},
-            query=prompt,
-            user=self.user_id,
-            response_mode="streaming"
-        )
-        chat_response.raise_for_status()
-
-        accumulated_text = ""
-        for line in chat_response.iter_lines(decode_unicode=True):
-            line = line.split('data:', 1)[-1]
-            if line.strip():
-                line = json.loads(line.strip())
-                text = line.get('answer', '')
-                accumulated_text += text
-
-                # Check for stop words
-                if stop:
-                    for stop_word in stop:
-                        if stop_word in text:
-                            text = text[:text.index(stop_word)]
-                            break
-
-                # Create ChatGenerationChunk using AIMessage
-                message = AIMessageChunk(content=text)
-                chunk = ChatGenerationChunk(message=message)
-                if run_manager:
-                    run_manager.on_llm_new_token(text, chunk=chunk)
-                yield chunk
-
-
-        # Process tool calls after streaming is complete
-        if "tools" in kwargs:
-            try:
-                response_json = json.loads(accumulated_text)
-                if "name" in response_json and "arguments" in response_json:
-                    tool_call = {
-                        "id": f"call_{uuid.uuid4().hex}",
-                        "function": {
-                            "arguments": json.dumps(response_json["arguments"]),
-                            "name": response_json["name"],
-                        },
-                        "type": "function",
-                    }
-                    message = AIMessageChunk(content="", additional_kwargs={"tool_calls": [tool_call]})
-                    chunk = ChatGenerationChunk(message=message)
-                    yield chunk
-            except json.JSONDecodeError:
-                pass
-    
-    def _generate(
-        self,
-        messages: list[BaseMessage],
-        stop: Optional[list[str]] = None,
-        run_manager: Optional[CallbackManagerForLLMRun] = None,
-        **kwargs: Any,
-    ) -> ChatResult:
-        additional_kwargs = {}
-        did_bind_tools = False
-        if "tools" in kwargs:
-            
-        # Add system prompt if tools are provided
-            prompt_template = """You are an AI assistant that carefully follows this process:
+prompt_template = """You are an AI assistant that carefully follows this process:
 
 1. THOUGHT:
 Analyze the previous response (if any) and the user's question:
@@ -187,6 +81,114 @@ ACTION: [tool JSON or "Proceed to final answer"]
 [If tool was used] REFLECTION: [your reflection on results]
 [When ready] FINAL ANSWER: [your response to the user]
                 """
+
+class DifyCustomLLM(BaseChatModel):
+    api_key: str = Field(..., description="API key for Dify")
+    user_id: str = Field(..., description="User ID for Dify")
+    base_url: HttpUrl = Field(..., description="Base URL for Dify API")
+    chat_client: ChatClient = Field(None, exclude=True)
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        self.chat_client = ChatClient(api_key=self.api_key)
+        self.chat_client.base_url = str(self.base_url)
+
+    def _call(self, prompt: str, stop: Optional[List[str]] = None, run_manager: Optional[CallbackManagerForLLMRun] = None, **kwargs: Any) -> str:
+        chat_response = self.chat_client.create_chat_message(inputs={}, query=prompt, user=self.user_id, response_mode="blocking")
+        chat_response.raise_for_status()
+        response_data = chat_response.json()
+        response_text = response_data.get('answer', '')
+        
+        # Process the response text appropriately if stop words are specified
+        if stop:
+            for stop_word in stop:
+                if stop_word in response_text:
+                    response_text = response_text[:response_text.index(stop_word)]
+        
+        return response_text
+        
+
+    def _stream(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any
+    ) -> Iterator[ChatGenerationChunk]:
+        additional_kwargs = {}  
+        did_bind_tools = False
+        if "tools" in kwargs:
+            tools_description =prompt_template.replace("{tools_description goes here}", self._render_tools_description(kwargs["tools"])) 
+
+            prompt = f"system: {tools_description}\n{prompt}"
+            did_bind_tools = True
+            kwargs.pop("tools")
+        
+        if "tool_choice" in kwargs:
+            kwargs.pop("tool_choice")
+
+        chat_response = self.chat_client.create_chat_message(
+            inputs={},
+            query=prompt,
+            user=self.user_id,
+            response_mode="streaming"
+        )
+        chat_response.raise_for_status()
+
+        accumulated_text = ""
+        for line in chat_response.iter_lines(decode_unicode=True):
+            line = line.split('data:', 1)[-1]
+            if line.strip():
+                line = json.loads(line.strip())
+                text = line.get('answer', '')
+                accumulated_text += text
+
+                # Check for stop words
+                if stop:
+                    for stop_word in stop:
+                        if stop_word in text:
+                            text = text[:text.index(stop_word)]
+                            break
+
+                # Create ChatGenerationChunk using AIMessage
+                message = AIMessageChunk(content=text)
+                chunk = ChatGenerationChunk(message=message)
+                if run_manager:
+                    run_manager.on_llm_new_token(text, chunk=chunk)
+                yield chunk
+
+
+        # Process tool calls after streaming is complete
+        if did_bind_tools:
+            print("_stream: tools in kwargs" )
+            try:
+                # response_json = json.loads(accumulated_text)
+                response_json = JsonOutputParser().parse(accumulated_text)
+                if "name" in response_json and "arguments" in response_json:
+                    tool_call = {
+                        "id": f"call_{uuid.uuid4().hex}",
+                        "function": {
+                            "arguments": json.dumps(response_json["arguments"]),
+                            "name": response_json["name"],
+                        },
+                        "type": "function",
+                    }
+                    message = AIMessageChunk(content="", additional_kwargs={"tool_calls": [tool_call]})
+                    chunk = ChatGenerationChunk(message=message)
+                    yield chunk
+            except json.JSONDecodeError:
+                pass
+    
+    def _generate(
+        self,
+        messages: list[BaseMessage],
+        stop: Optional[list[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> ChatResult:
+        additional_kwargs = {}
+        did_bind_tools = False
+        if "tools" in kwargs:
             tools_description =prompt_template.replace("{tools_description goes here}", self._render_tools_description(kwargs["tools"])) 
             messages.insert(0, SystemMessage(content=tools_description))
             did_bind_tools = True
@@ -288,7 +290,7 @@ ACTION: [tool JSON or "Proceed to final answer"]
                     "type": "function",
                     "function": {"name": tool_name},
                 }
-
+            kwargs["tool_choice"] = tool_choice
         return super().bind(tools=tools, **kwargs)
 
     @property
