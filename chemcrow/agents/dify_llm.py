@@ -160,7 +160,6 @@ class DifyCustomLLM(BaseChatModel):
 
         # Process tool calls after streaming is complete
         if did_bind_tools:
-            print("_stream: tools in kwargs" )
             try:
                 # response_json = json.loads(accumulated_text)
                 response_json = JsonOutputParser().parse(accumulated_text)
@@ -176,7 +175,7 @@ class DifyCustomLLM(BaseChatModel):
                     message = AIMessageChunk(content="", additional_kwargs={"tool_calls": [tool_call]})
                     chunk = ChatGenerationChunk(message=message)
                     yield chunk
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, OutputParserException):
                 pass
     
     def _generate(
