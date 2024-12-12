@@ -25,7 +25,7 @@ dependencies = [
     "python-dotenv",
     "rdkit",
     "synspace",
-    "openai==1.51.0",
+    "openai",
     "molbloom",
     "paper-qa>=4.9.0",
     "google-search-results",
