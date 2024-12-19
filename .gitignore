@@ -131,3 +131,10 @@ dmypy.json
 local/
 *ipynb
 query/
+
+# Models in docker directory
+**/docker/molecular-transformer/*txt
+*.pt
+*onnx
+**/docker/*/files/*csv.gz
+**/docker/*/files/*hdf5
