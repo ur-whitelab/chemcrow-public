@@ -79,7 +79,7 @@ def test_query2smiles_chemspace(singlemol, single_iupac):
     else:
         chemspace = ChemSpace(chemspace_api_key=os.getenv("CHEMSPACE_API_KEY"))
         smiles_from_chemspace = chemspace.convert_mol_rep("caffeine", "smiles")
-        assert "CN1C=NC2=C1C(=O)N(C)C(=O)N2[13CH3]" in smiles_from_chemspace
+        assert "CN1C=NC2=C1C(=O)N(C)C(=O)N2C" in smiles_from_chemspace
 
         price = chemspace.buy_mol(singlemol)
         assert "of this molecule cost" in price
@@ -91,8 +91,8 @@ def test_query2smiles_chemspace(singlemol, single_iupac):
 def test_smiles2name():
     smiles2name = SMILES2Name()
     assert (
-        smiles2name.run("CN1C=NC2=C1C(=O)N(C)C(=O)N2[13CH3]")
-        == "1,7-Dimethyl-3-(113C)methylpurine-2,6-dione"
+        smiles2name.run("CN1C=NC2=C1C(=O)N(C)C(=O)N2C")
+        == "caffeine"
     )
     assert "acetic acid" in smiles2name.run("CC(=O)O").lower()
     assert "Error:" in smiles2name.run("nonsense")
