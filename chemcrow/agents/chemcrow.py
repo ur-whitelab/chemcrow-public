@@ -46,6 +46,7 @@ class ChemCrow:
         streaming: bool = True,
         openai_api_key: Optional[str] = None,
         api_keys: dict = {},
+        local_rxn: bool = False,
     ):
         """Initialize ChemCrow agent."""
 
@@ -58,7 +59,7 @@ class ChemCrow:
         if tools is None:
             api_keys["OPENAI_API_KEY"] = openai_api_key
             tools_llm = _make_llm(tools_model, temp, openai_api_key, streaming)
-            tools = make_tools(tools_llm, api_keys=api_keys, verbose=verbose)
+            tools = make_tools(tools_llm, api_keys=api_keys, local_rxn=local_rxn, verbose=verbose)
 
         # Initialize agent
         self.agent_executor = RetryAgentExecutor.from_agent_and_tools(

@@ -1,0 +1,11 @@
+expansion:
+  uspto:
+    - files/uspto_model.onnx
+    - files/uspto_templates.csv.gz
+  ringbreaker:
+    - files/uspto_ringbreaker_model.onnx
+    - files/uspto_ringbreaker_templates.csv.gz
+filter:
+  uspto: files/uspto_filter_model.onnx
+stock:
+  zinc: files/zinc_stock.hdf5

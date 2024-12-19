@@ -6,7 +6,7 @@ from langchain.base_language import BaseLanguageModel
 from chemcrow.tools import *
 
 
-def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, verbose=True):
+def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, local_rxn: bool=False, verbose=True):
     serp_api_key = api_keys.get("SERP_API_KEY") or os.getenv("SERP_API_KEY")
     rxn4chem_api_key = api_keys.get("RXN4CHEM_API_KEY") or os.getenv("RXN4CHEM_API_KEY")
     openai_api_key = api_keys.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
@@ -48,10 +48,15 @@ def make_tools(llm: BaseLanguageModel, api_keys: dict = {}, verbose=True):
         all_tools += [GetMoleculePrice(chemspace_api_key)]
     if serp_api_key:
         all_tools += [WebSearch(serp_api_key)]
-    if rxn4chem_api_key:
+    if (not local_rxn) and rxn4chem_api_key:
         all_tools += [
             RXNPredict(rxn4chem_api_key),
             RXNRetrosynthesis(rxn4chem_api_key, openai_api_key),
+        ]
+    elif local_rxn:
+        all_tools += [
+            RXNPredictLocal(),
+            RXNRetrosynthesisLocal()
         ]
 
     return all_tools
