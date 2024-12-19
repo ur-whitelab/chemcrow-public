@@ -60,6 +60,31 @@ chem_model = ChemCrow(model="gpt-4-0613", temp=0.1, streaming=False)
 chem_model.run("What is the molecular weight of tylenol?")
 ```
 
+
+## 🛠️ Self-hosting of some tools.
+
+By default, ChemCrow relies on the RXN4Chem API for retrosynthetic planning and reaction product prediction. This can however be slow and depends on you having an API key.
+
+Optionally, you can also self host these tools by running some pre-made docker images.
+
+Run 
+
+```
+docker run --gpus all -d -p 8051:5000 doncamilom/rxnpred:latest
+docker run --gpus all -d -p 8052:5000 doncamilom/retrosynthesis:latest
+```
+
+
+Now ChemCrow can be used like this:
+
+```python
+from chemcrow.agents import ChemCrow
+
+chem_model = ChemCrow(model="gpt-4-0613", temp=0.1, streaming=False, local_rxn=True)
+chem_model.run("What is the product of the reaction between styrene and dibromine?")
+```
+
+
 ## ✅ Citation
 Bran, Andres M., et al. "ChemCrow: Augmenting large-language models with chemistry tools." arXiv preprint arXiv:2304.05376 (2023).
 
