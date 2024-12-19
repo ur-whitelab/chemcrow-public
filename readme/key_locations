@@ -1,0 +1,8 @@
+you need to put api_keys in the following positions:
+
+chemcrew/utils/agents line 68, 82 #open_ai_keys
+               /agent_prompts line 60 #open_ai_keys & OTHERs
+         /webpage line 29 #open_ai_keys
+
+
+in addition, please swap the sample_llm in chemcrew/tools/make_llm, or use your own ollama server
