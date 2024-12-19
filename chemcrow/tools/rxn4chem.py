@@ -100,7 +100,7 @@ class RXNPredict(RXN4Chem):
         product = results["productMolecule"]["smiles"]
         return product
 
-    @RXN4Chem.retry(10, KeyError)
+    # @RXN4Chem.retry(10, KeyError)
     def predict_reaction(self, reactants: str) -> str:
         """Make api request."""
         response = self.rxn4chem.predict_reaction(reactants)
@@ -109,7 +109,7 @@ class RXNPredict(RXN4Chem):
         else:
             raise KeyError
 
-    @RXN4Chem.retry(10, KeyError)
+    # @RXN4Chem.retry(10, KeyError)
     def get_results(self, prediction_id: str) -> str:
         """Make api request."""
         results = self.rxn4chem.get_predict_reaction_results(prediction_id)
